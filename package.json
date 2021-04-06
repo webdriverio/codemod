@@ -1,0 +1,19 @@
+{
+  "name": "protractor-codemod",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test/runner.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jscodeshift": "^0.11.0"
+  },
+  "devDependencies": {
+    "expect": "^26.6.2",
+    "shelljs": "^0.8.4"
+  }
+}

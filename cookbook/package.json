@@ -1,0 +1,21 @@
+{
+  "name": "protractor-javascript",
+  "version": "1.0.0",
+  "description": "from https://github.com/juliemr/protractor-demo",
+  "scripts": {
+    "example": "protractor example/conf.js",
+    "example-browserlog": "protractor example-browserlog/conf.js",
+    "example-network": "protractor example-network/conf.js",
+    "example-screenshot": "protractor example-screenshot/conf.js",
+    "start": "cd ../testapp && npm install && npm start",
+    "test": "npm run example-browserlog && npm run example && npm run example-network",
+    "test-external": "export BASE_URL='http://angular.github.io' && npm test",
+    "text-local": "unset BASE_URL && npm test"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "mkdirp": "^0.5.1",
+    "protractor": "^5.1.0"
+  }
+}
