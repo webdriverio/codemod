@@ -19,7 +19,7 @@ const tests = [
         const srcFile = path.join(__dirname, 'testdata', source)
         const fixtureFile = path.join(__dirname, desired)
 
-        const a = await Runner.run(
+        await Runner.run(
             path.resolve(path.join(__dirname, '..', 'src', 'index.js')),
             [srcFile],
             {
