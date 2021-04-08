@@ -1,7 +1,7 @@
 WebdriverIO Codemod [![Test](https://github.com/webdriverio/protractor-codemod/actions/workflows/test.yaml/badge.svg)](https://github.com/webdriverio/protractor-codemod/actions/workflows/test.yaml)
 ===================
 
-A codemod to transform test files into WebdriverIO tests. It can be used with [jscodeshift](https://www.npmjs.com/package/jscodeshift). Currently supported are:
+A codemod to transform test files into WebdriverIO tests. It can be used with [jscodeshift](https://www.npmjs.com/package/jscodeshift) and currently supports the following frameworks:
 
 - [x] Protractor
 - [ ] _more will eventually follow, let us know which ones you would like to see_
