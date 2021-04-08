@@ -5,24 +5,27 @@ const expect = require('expect')
 
 const Runner = require('jscodeshift/src/Runner')
 
-const tests = [
-    ['./example/spec.js', './__fixtures__/spec.js'],
-    ['./example/failing_byBinding.js'],
-    ['./example/failing_byCssContainingTextRegex.js']
-]
+const frameworkTests = {
+    protractor: [
+        ['./spec.js', './spec.js'],
+        ['./failing_byBinding.js'],
+        ['./failing_byCssContainingTextRegex.js']
+    ]
+}
 
 let error
-;(async () => {
+
+async function runTest (framework, tests) {
     shell.cp(
         '-r',
-        path.join(__dirname, '..', 'cookbook'),
+        path.join(__dirname, '__fixtures__', framework, 'source'),
         path.join(__dirname, 'testdata')
     )
     for ([source, desired] of tests) {
         const srcFile = path.join(__dirname, 'testdata', source)
 
         const result = await Runner.run(
-            path.resolve(path.join(__dirname, '..', 'src', 'index.js')),
+            path.resolve(path.join(__dirname, '..', framework, 'index.js')),
             [srcFile],
             {
                 verbose: 2
@@ -37,11 +40,20 @@ let error
             continue
         }
 
-        const fixtureFile = path.join(__dirname, desired)
+        const fixtureFile = path.join(__dirname, '__fixtures__', framework, 'transformed', desired)
         const sourceFileContent = (await fs.promises.readFile(srcFile)).toString()
         const desiredFileContent = (await fs.promises.readFile(fixtureFile)).toString()
 
         expect(sourceFileContent).toEqual(desiredFileContent)
+    }
+}
+
+;(async () => {
+    for (const [framework, tests] of Object.entries(frameworkTests)) {
+        console.log('========================')
+        console.log(`Run tests for ${framework}`)
+        console.log('========================\n')
+        await runTest(framework, tests)
     }
 })().then(
     () => console.log('Tests passed ✅'),

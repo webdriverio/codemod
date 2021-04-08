@@ -19,9 +19,8 @@ class TransformError extends Error {
   }
 }
 
-function getSelectorArgument (j, callExpr, file) {
+function getSelectorArgument (j, path, callExpr, file) {
   const args = []
-  // console.log(callExpr);
   const bySelector = callExpr.callee.property.name
 
   if (bySelector === 'id') {
@@ -116,7 +115,7 @@ module.exports = function transformer(file, api) {
     .replaceWith((path) => (
       j.callExpression(
         j.identifier('$'),
-        getSelectorArgument(j, path.value.arguments[0], file)
+        getSelectorArgument(j, path, path.value.arguments[0], file)
       )
     ))
   
@@ -135,7 +134,7 @@ module.exports = function transformer(file, api) {
     ))
     .replaceWith((path) => j.callExpression(
       j.identifier('$$'),
-      getSelectorArgument(j, path.value.arguments[0], file)
+      getSelectorArgument(j, path, path.value.arguments[0], file)
     ))
   
   /**
@@ -177,7 +176,7 @@ module.exports = function transformer(file, api) {
                 path.value.callee.object,
                 j.identifier('$')
               ),
-              getSelectorArgument(j, path.value.arguments[0], file)
+              getSelectorArgument(j, path, path.value.arguments[0], file)
             ),
             j.identifier('isExisting')
           ),
@@ -215,7 +214,7 @@ module.exports = function transformer(file, api) {
           path.value.callee.object,
           j.identifier(chainedCommand)
         ),
-        getSelectorArgument(j, path.value.arguments[0], file)
+        getSelectorArgument(j, path, path.value.arguments[0], file)
       )
     })
   
