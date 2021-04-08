@@ -16,13 +16,19 @@
     "access": "public"
   },
   "scripts": {
-    "test": "node ./test/runner.js"
+    "test": "node ./test/runner.js",
+    "release": "release-it --github.release",
+    "release:ci": "npm run release -- --ci --npm.skipChecks --no-git.requireCleanWorkingDir",
+    "release:patch": "npm run release -- patch",
+    "release:minor": "npm run release -- minor",
+    "release:major": "npm run release -- major"
   },
   "dependencies": {
     "jscodeshift": "^0.11.0"
   },
   "devDependencies": {
     "expect": "^26.6.2",
+    "release-it": "^14.5.1",
     "shelljs": "^0.8.4"
   }
 }
