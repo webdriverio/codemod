@@ -2,8 +2,11 @@ browser.url(env.url + '/ng1/calculator');
 $("*[ng-model=\"first\"]").setValue(4);
 $("#gobutton").click();
 let list = $$('.count span');
-$("a=" + postTitle).isPresent();
+$("a=" + postTitle).isExisting();
 var dog = $$(".pet=Dog");
+
+$('#abc').$('#def').isExisting()
+$('#abc').$('#def').isExisting()
 
 firstNum.setValue('1');
 browser.pause(1000)
@@ -11,6 +14,7 @@ browser.debug()
 browser.debug()
 const source = browser.getSource()
 const url = browser.getUrl()
+const url2 = browser.getUrl()
 browser.execute(function() {console.error('error from test'); });
 
 browser.waitUntil(async () => {

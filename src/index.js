@@ -1,5 +1,5 @@
 const SUPPORTED_SELECTORS = ['id', 'model', 'css', 'binding', 'cssContainingText']
-const ELEMENT_COMMANDS = ['sendKeys']
+const ELEMENT_COMMANDS = ['sendKeys', 'isPresent']
 
 class TransformError extends Error {
   constructor(message, path, file) {
@@ -19,19 +19,20 @@ class TransformError extends Error {
   }
 }
 
-function getSelectorArgument (j, path, file) {
+function getSelectorArgument (j, callExpr, file) {
   const args = []
-  const bySelector = path.value.arguments[0].callee.property.name
+  // console.log(callExpr);
+  const bySelector = callExpr.callee.property.name
 
   if (bySelector === 'id') {
-    args.push(j.literal(`#${path.value.arguments[0].arguments[0].value}`))
+    args.push(j.literal(`#${callExpr.arguments[0].value}`))
   } else if (bySelector === 'model') {
-    args.push(j.literal(`*[ng-model="${path.value.arguments[0].arguments[0].value}"]`))
+    args.push(j.literal(`*[ng-model="${callExpr.arguments[0].value}"]`))
   } else if (bySelector === 'css') {
-    args.push(...path.value.arguments[0].arguments)
+    args.push(...callExpr.arguments)
   } else if (bySelector === 'cssContainingText') {
-    const selector = path.value.arguments[0].arguments[0]
-    const text = path.value.arguments[0].arguments[1]
+    const selector = callExpr.arguments[0]
+    const text = callExpr.arguments[1]
 
     if (text.type === 'Literal') {
       args.push(j.literal(`${selector.value}=${text.value}`))
@@ -86,6 +87,7 @@ function replaceCommands (prtrctrCommand) {
     case 'explore':
       return 'debug'
     case 'getCurrentUrl':
+    case 'getLocationAbsUrl':
       return 'getUrl'
     case 'wait':
       return 'waitUntil'
@@ -114,7 +116,7 @@ module.exports = function transformer(file, api) {
     .replaceWith((path) => (
       j.callExpression(
         j.identifier('$'),
-        getSelectorArgument(j, path, file)
+        getSelectorArgument(j, path.value.arguments[0], file)
       )
     ))
   
@@ -133,7 +135,7 @@ module.exports = function transformer(file, api) {
     ))
     .replaceWith((path) => j.callExpression(
       j.identifier('$$'),
-      getSelectorArgument(j, path, file)
+      getSelectorArgument(j, path.value.arguments[0], file)
     ))
   
   /**
@@ -169,6 +171,28 @@ module.exports = function transformer(file, api) {
       ),
       path.value.arguments
     ))
+  
+  /**
+   * transform element chaining
+   */
+  root.find(j.CallExpression)
+    .filter((path) => (
+      path.value.callee &&
+      path.value.callee.type === 'MemberExpression' &&
+      ['element', 'elements'].includes(path.value.callee.property.name)
+    ))
+    .replaceWith((path) => {
+      const chainedCommand = path.value.callee.property.name === 'element'
+        ? '$'
+        : '$$'
+      return j.callExpression(
+        j.memberExpression(
+          path.value.callee.object,
+          j.identifier(chainedCommand)
+        ),
+        getSelectorArgument(j, path.value.arguments[0], file)
+      )
+    })
   
   /**
    * replace await/then calls, e.g.

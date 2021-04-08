@@ -5,12 +5,16 @@ let list = element.all(by.css('.count span'));
 element(by.cssContainingText('a', postTitle)).isPresent();
 var dog = element.all(by.cssContainingText('.pet', 'Dog'));
 
+element(by.css('#abc')).element(by.css('#def')).isPresent()
+element(by.css('#abc')).isElementPresent(by.css('#def'))
+
 firstNum.sendKeys('1');
 browser.sleep(1000)
 browser.explore()
 browser.enterRepl()
 const source = browser.getPageSource()
 const url = browser.getCurrentUrl()
+const url2 = browser.getLocationAbsUrl()
 browser.executeScript(function() {console.error('error from test'); });
 
 browser.wait(async () => {
