@@ -1,5 +1,5 @@
 const SUPPORTED_SELECTORS = ['id', 'model', 'css', 'binding', 'cssContainingText']
-const ELEMENT_COMMANDS = ['sendKeys', 'isPresent']
+const ELEMENT_COMMANDS = ['sendKeys', 'isPresent', 'isElementPresent']
 
 class TransformError extends Error {
   constructor(message, path, file) {
@@ -164,13 +164,38 @@ module.exports = function transformer(file, api) {
       path.value.callee.type === 'MemberExpression' &&
       ELEMENT_COMMANDS.includes(path.value.callee.property.name)
     ))
-    .replaceWith((path) => j.callExpression(
-      j.memberExpression(
-        path.value.callee.object,
-        j.identifier(replaceCommands(path.value.callee.property.name))
-      ),
-      path.value.arguments
-    ))
+    .replaceWith((path) => {
+      /**
+       * transform `element(by.css('#abc')).isElementPresent(by.css('#def'))`
+       * to `$('#abc').$('#def')`
+       */
+      if (path.value.callee.property.name === 'isElementPresent') {
+        return j.callExpression(
+          j.memberExpression(
+            j.callExpression(
+              j.memberExpression(
+                path.value.callee.object,
+                j.identifier('$')
+              ),
+              getSelectorArgument(j, path.value.arguments[0], file)
+            ),
+            j.identifier('isExisting')
+          ),
+          []
+        )
+      }
+
+      /**
+       * transform any other element command
+       */
+      return j.callExpression(
+        j.memberExpression(
+          path.value.callee.object,
+          j.identifier(replaceCommands(path.value.callee.property.name))
+        ),
+        path.value.arguments
+      )
+    })
   
   /**
    * transform element chaining
