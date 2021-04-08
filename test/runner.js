@@ -7,7 +7,8 @@ const Runner = require('jscodeshift/src/Runner')
 
 const tests = [
     ['./example/spec.js', './__fixtures__/spec.js'],
-    ['./example/failing.js']
+    ['./example/failing_byBinding.js'],
+    ['./example/failing_byCssContainingTextRegex.js']
 ]
 
 let error
@@ -49,6 +50,7 @@ let error
     shell.rm('-r', path.join(__dirname, 'testdata'))
 
     if (error) {
+        delete error.matcherResult
         console.warn(error)
         return process.exit(1)
     }

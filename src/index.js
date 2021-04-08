@@ -1,4 +1,4 @@
-const SUPPORTED_SELECTORS = ['id', 'model', 'css', 'binding']
+const SUPPORTED_SELECTORS = ['id', 'model', 'css', 'binding', 'cssContainingText']
 const ELEMENT_COMMANDS = ['sendKeys']
 
 class TransformError extends Error {
@@ -12,7 +12,7 @@ class TransformError extends Error {
       errorMsg + '\n\n' +
       `> ${expression}\n` +
       ' '.repeat(path.value.callee.loc.start.column + 2) + '^\n\n' +
-      'Binding selectors are not supported, please consider refactor this line\n' +
+      message + '\n' +
       `  at ${file.path}:${path.value.loc.start.line}:${path.value.loc.start.column}`
     )
     this.name = this.constructor.name
@@ -29,8 +29,29 @@ function getSelectorArgument (j, path, file) {
     args.push(j.literal(`*[ng-model="${path.value.arguments[0].arguments[0].value}"]`))
   } else if (bySelector === 'css') {
     args.push(...path.value.arguments[0].arguments)
+  } else if (bySelector === 'cssContainingText') {
+    const selector = path.value.arguments[0].arguments[0]
+    const text = path.value.arguments[0].arguments[1]
+
+    if (text.type === 'Literal') {
+      args.push(j.literal(`${selector.value}=${text.value}`))
+    } else if (text.type === 'Identifier') {
+      args.push(
+        j.binaryExpression(
+          '+',
+          j.literal(selector.value + '='),
+          j.identifier(text.name)
+        )
+      )
+    } else {
+      throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path, file)
+    }
+    
+    if (text.regex) {
+      throw new TransformError('this codemod does not support RegExp in cssContainingText', path, file)
+    }
   } else if (bySelector === 'binding') {
-    throw new TransformError('by.binding is not supported anymore', path, file)
+    throw new TransformError('Binding selectors (by.binding) are not supported, please consider refactor this line', path, file)
   }
 
   return args
@@ -55,8 +76,17 @@ function replaceCommands (prtrctrCommand) {
     // browser commands
     case 'executeScript':
       return 'execute'
+    case 'getPageSource':
+      return 'getSource'
     case 'get':
       return 'url'
+    case 'sleep':
+      return 'pause'
+    case 'enterRepl':
+    case 'explore':
+      return 'debug'
+    case 'getCurrentUrl':
+      return 'getUrl'
     case 'wait':
       return 'waitUntil'
     case 'getAllWindowHandles':
@@ -68,7 +98,7 @@ function replaceCommands (prtrctrCommand) {
 module.exports = function transformer(file, api) {
   const j = api.jscodeshift;
   const root = j(file.source);
-  
+
   /**
    * transform:
    * element(...)

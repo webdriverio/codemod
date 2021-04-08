@@ -2,9 +2,15 @@ browser.url(env.url + '/ng1/calculator');
 $("*[ng-model=\"first\"]").setValue(4);
 $("#gobutton").click();
 let list = $$('.count span');
-$$('a=' + postTitle)).isPresent();
+$("a=" + postTitle).isPresent();
+var dog = $$(".pet=Dog");
 
 firstNum.setValue('1');
+browser.pause(1000)
+browser.debug()
+browser.debug()
+const source = browser.getSource()
+const url = browser.getUrl()
 browser.execute(function() {console.error('error from test'); });
 
 browser.waitUntil(async () => {

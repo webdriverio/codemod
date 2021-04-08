@@ -1,0 +1,1 @@
+element(by.cssContainingText('a', /postTitle/)).isPresent();
