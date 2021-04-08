@@ -6,9 +6,11 @@ const expect = require('expect')
 const Runner = require('jscodeshift/src/Runner')
 
 const tests = [
-    ['./example/spec.js', './__fixtures__/spec.js']
+    ['./example/spec.js', './__fixtures__/spec.js'],
+    ['./example/failing.js']
 ]
 
+let error
 ;(async () => {
     shell.cp(
         '-r',
@@ -17,15 +19,24 @@ const tests = [
     )
     for ([source, desired] of tests) {
         const srcFile = path.join(__dirname, 'testdata', source)
-        const fixtureFile = path.join(__dirname, desired)
 
-        await Runner.run(
+        const result = await Runner.run(
             path.resolve(path.join(__dirname, '..', 'src', 'index.js')),
             [srcFile],
             {
                 verbose: 2
             }
         )
+        
+        if (result.error) {
+            if (desired) {
+                throw new Error('Failed to compile')
+            }
+            
+            continue
+        }
+
+        const fixtureFile = path.join(__dirname, desired)
         const sourceFileContent = (await fs.promises.readFile(srcFile)).toString()
         const desiredFileContent = (await fs.promises.readFile(fixtureFile)).toString()
 
@@ -33,7 +44,12 @@ const tests = [
     }
 })().then(
     () => console.log('Tests passed ✅'),
-    (err) => console.error(err.message)
-).then(() => (
+    (err) => (error = err)
+).then(() => {
     shell.rm('-r', path.join(__dirname, 'testdata'))
-))
+
+    if (error) {
+        console.warn(error)
+        return process.exit(1)
+    }
+})

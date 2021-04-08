@@ -1,0 +1,1 @@
+expect(element(by.binding('latest')).getText()).toEqual('9');

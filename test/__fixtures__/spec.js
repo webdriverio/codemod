@@ -1,6 +1,24 @@
-browser.get(env.url + '/ng1/calculator');
-$("*[ng-model=\"first\"]").sendKeys(4);
+browser.url(env.url + '/ng1/calculator');
+$("*[ng-model=\"first\"]").setValue(4);
 $("#gobutton").click();
 let list = $$('.count span');
+$$('a=' + postTitle)).isPresent();
 
-expect(element(by.binding('latest')).getText()).toEqual('9');
+firstNum.setValue('1');
+browser.execute(function() {console.error('error from test'); });
+
+browser.waitUntil(async () => {
+    return await this.pageLoaded();
+}, 3000, 'timeout');
+
+;(async () => {
+    let handles = await browser.getWindowHandles();
+    browser.switchTo().window(handles[handles.length - 1])
+    const a = 1 + 1
+    console.log('test');
+    const b = 2 + 2
+    let handles = await browser.getWindowHandles();
+    browser.close();
+    // the parent should be 2 less than the length of all found window handlers
+    browser.switchTo().window(handles.length - 2);
+})
