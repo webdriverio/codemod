@@ -4,7 +4,7 @@ WebdriverIO Codemod [![Test](https://github.com/webdriverio/protractor-codemod/a
 A codemod to transform test files into WebdriverIO tests. It can be used with [jscodeshift](https://www.npmjs.com/package/jscodeshift). Currently supported are:
 
 - [x] Protractor
-- __more will eventually follow, let us know which ones you would like to see__
+- [ ] _more will eventually follow, let us know which ones you would like to see_
 
 ## Install
 
