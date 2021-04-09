@@ -102,6 +102,8 @@ function replaceCommands (prtrctrCommand) {
             return 'waitUntil'
         case 'close':
             return 'closeWindow'
+        case 'restart':
+            return 'reloadSession'
         case 'getAllWindowHandles':
             return 'getWindowHandles'
         default: return prtrctrCommand
