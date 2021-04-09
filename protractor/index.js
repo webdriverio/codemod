@@ -80,13 +80,30 @@ module.exports = function transformer(file, api) {
             path.value.callee.type === 'MemberExpression' &&
             path.value.callee.object.name === 'browser'
         ))
-        .replaceWith((path) => j.callExpression(
-            j.memberExpression(
-                path.value.callee.object,
-                j.identifier(replaceCommands(path.value.callee.property.name))
-            ),
-            path.value.arguments
-        ))
+        .replaceWith((path) => {
+            const method = path.value.callee.property.name
+            /**
+             * throw error for methods that can't be transformed
+             */
+            if (method === 'touchActions') {
+                const errorText = '' +
+                    'Can not transform "touchActions" command as it differs ' +
+                    'too much from the WebdriverIO implementation. We advise ' +
+                    'to refactor this code.\n\n' +
+                    'For more information on WebdriverIOs touchAction, see ' +
+                    'https://webdriver.io/docs/api/browser/touchAction and' +
+                    'https://webdriver.io/docs/api/webdriver#performactions'
+                throw new TransformError(errorText, path, file)
+            }
+
+            return j.callExpression(
+                j.memberExpression(
+                    path.value.callee.object,
+                    j.identifier(replaceCommands(method))
+                ),
+                path.value.arguments
+            )
+        })
 
     /**
      * transform element commands
