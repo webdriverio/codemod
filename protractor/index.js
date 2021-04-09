@@ -1,3 +1,5 @@
+const { format } = require('util')
+
 const { SUPPORTED_SELECTORS, ELEMENT_COMMANDS } = require('./constants')
 const {
     isCustomStrategy,
@@ -85,15 +87,23 @@ module.exports = function transformer(file, api) {
             /**
              * throw error for methods that can't be transformed
              */
+            const errorText = '' +
+                'Can not transform "%s" command as it differs ' +
+                'too much from the WebdriverIO implementation. We advise ' +
+                'to refactor this code.\n\n' +
+                'For more information on WebdriverIOs replacement command, see %s'
             if (method === 'touchActions') {
-                const errorText = '' +
-                    'Can not transform "touchActions" command as it differs ' +
-                    'too much from the WebdriverIO implementation. We advise ' +
-                    'to refactor this code.\n\n' +
-                    'For more information on WebdriverIOs touchAction, see ' +
-                    'https://webdriver.io/docs/api/browser/touchAction and' +
-                    'https://webdriver.io/docs/api/webdriver#performactions'
-                throw new TransformError(errorText, path, file)
+                throw new TransformError(
+                    format(errorText, 'touchActions', 'https://webdriver.io/docs/api/browser/touchAction'),
+                    path,
+                    file
+                )
+            } else if (method === 'actions') {
+                throw new TransformError(
+                    format(errorText, 'actions', 'https://webdriver.io/docs/api/webdriver#performactions'),
+                    path,
+                    file
+                )
             }
 
             return j.callExpression(
