@@ -1,100 +1,11 @@
-const SUPPORTED_SELECTORS = ['id', 'model', 'css', 'binding', 'cssContainingText']
-const ELEMENT_COMMANDS = ['sendKeys', 'isPresent', 'isElementPresent']
-
-class TransformError extends Error {
-  constructor(message, path, file) {
-    const source = file.source.split('\n')
-    const line = source.slice(path.value.loc.start.line - 1, path.value.loc.end.line)[0]
-    const expression = line.slice(0, path.value.loc.end.column)
-    const errorMsg = `Error transforming ${file.path.replace(process.cwd(), '')}:${path.value.loc.start.line}`
-    super(errorMsg)
-    this.stack = (
-      errorMsg + '\n\n' +
-      `> ${expression}\n` +
-      ' '.repeat(path.value.callee.loc.start.column + 2) + '^\n\n' +
-      message + '\n' +
-      `  at ${file.path}:${path.value.loc.start.line}:${path.value.loc.start.column}`
-    )
-    this.name = this.constructor.name
-  }
-}
-
-function getSelectorArgument (j, path, callExpr, file) {
-  const args = []
-  const bySelector = callExpr.callee.property.name
-
-  if (bySelector === 'id') {
-    args.push(j.literal(`#${callExpr.arguments[0].value}`))
-  } else if (bySelector === 'model') {
-    args.push(j.literal(`*[ng-model="${callExpr.arguments[0].value}"]`))
-  } else if (bySelector === 'css') {
-    args.push(...callExpr.arguments)
-  } else if (bySelector === 'cssContainingText') {
-    const selector = callExpr.arguments[0]
-    const text = callExpr.arguments[1]
-
-    if (text.type === 'Literal') {
-      args.push(j.literal(`${selector.value}=${text.value}`))
-    } else if (text.type === 'Identifier') {
-      args.push(
-        j.binaryExpression(
-          '+',
-          j.literal(selector.value + '='),
-          j.identifier(text.name)
-        )
-      )
-    } else {
-      throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path, file)
-    }
-    
-    if (text.regex) {
-      throw new TransformError('this codemod does not support RegExp in cssContainingText', path, file)
-    }
-  } else if (bySelector === 'binding') {
-    throw new TransformError('Binding selectors (by.binding) are not supported, please consider refactor this line', path, file)
-  }
-
-  return args
-}
-
-function matchesSelectorExpression (path) {
-  return (
-    path.value.arguments.length === 1 &&
-    path.value.arguments[0].callee.type === 'MemberExpression' &&
-    path.value.arguments[0].callee.object.name === 'by' &&
-    SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
-  )
-}
-
-function replaceCommands (prtrctrCommand) {
-  switch (prtrctrCommand) {
-    // element commands
-    case 'sendKeys':
-      return 'setValue'
-    case 'isPresent':
-      return 'isExisting'
-    // browser commands
-    case 'executeScript':
-      return 'execute'
-    case 'getPageSource':
-      return 'getSource'
-    case 'get':
-      return 'url'
-    case 'sleep':
-      return 'pause'
-    case 'enterRepl':
-    case 'explore':
-      return 'debug'
-    case 'getCurrentUrl':
-    case 'getLocationAbsUrl':
-      return 'getUrl'
-    case 'wait':
-      return 'waitUntil'
-    case 'getAllWindowHandles':
-      return 'getWindowHandles'
-    default: return prtrctrCommand
-  }
-}
+const { SUPPORTED_SELECTORS, ELEMENT_COMMANDS } = require('./constants')
+const {
+  isCustomStrategy,
+  TransformError,
+  getSelectorArgument,
+  matchesSelectorExpression,
+  replaceCommands
+} = require('./utils')
 
 module.exports = function transformer(file, api) {
   const j = api.jscodeshift;
@@ -112,12 +23,23 @@ module.exports = function transformer(file, api) {
       path.value.callee.name === 'element' &&
       matchesSelectorExpression(path)
     ))
-    .replaceWith((path) => (
-      j.callExpression(
+    .replaceWith((path) => {
+      const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
+      if (isCustomStrategy) {
+        return j.callExpression(
+          j.memberExpression(
+            j.identifier('browser'),
+            j.identifier('custom$')
+          ),
+          getSelectorArgument(j, path, path.value.arguments[0], file)
+        )
+      }
+
+      return j.callExpression(
         j.identifier('$'),
         getSelectorArgument(j, path, path.value.arguments[0], file)
       )
-    ))
+    })
   
   /**
    * transform:
@@ -132,10 +54,22 @@ module.exports = function transformer(file, api) {
       path.value.callee.property.name === 'all' &&
       matchesSelectorExpression(path)
     ))
-    .replaceWith((path) => j.callExpression(
-      j.identifier('$$'),
-      getSelectorArgument(j, path, path.value.arguments[0], file)
-    ))
+    .replaceWith((path) => {
+      const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
+      if (isCustomStrategy) {
+        return j.callExpression(
+          j.memberExpression(
+            j.identifier('browser'),
+            j.identifier('custom$$')
+          ),
+          getSelectorArgument(j, path, path.value.arguments[0], file)
+        )
+      }
+      return j.callExpression(
+        j.identifier('$$'),
+        getSelectorArgument(j, path, path.value.arguments[0], file)
+      )
+    })
   
   /**
    * transform browser commands
@@ -206,9 +140,10 @@ module.exports = function transformer(file, api) {
       ['element', 'elements'].includes(path.value.callee.property.name)
     ))
     .replaceWith((path) => {
+      const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
       const chainedCommand = path.value.callee.property.name === 'element'
-        ? '$'
-        : '$$'
+        ? isCustomStrategy ? 'custom$' : '$'
+        : isCustomStrategy ? 'custom$$' : '$$'
       return j.callExpression(
         j.memberExpression(
           path.value.callee.object,
@@ -252,6 +187,37 @@ module.exports = function transformer(file, api) {
         ...path.value.expression.argument.arguments[0].body.body
       ]
     })
+  
+  /**
+   * transform by.addLocator
+   */
+  root.find(j.CallExpression)
+  .filter((path) => (
+    path.value.callee &&
+    path.value.callee.type === 'MemberExpression' &&
+    path.value.callee.object.name === 'by' &&
+    path.value.callee.property.name === 'addLocator'
+  ))
+  .replaceWith((path) => {
+    /**
+     * check if user uses rootSelector parameter which is not supported
+     * in WebdriverIO
+     */
+    if (path.value.arguments[1].params.length > 2) {
+      const errorText = '' +
+        `WebdriverIO doesn't support the "rootSelector" ` +
+        `parameter in the custom locator function.`
+      throw new TransformError(errorText, path, file)
+    }
+
+    return j.callExpression(
+      j.memberExpression(
+        j.identifier('browser'),
+        j.identifier('addLocatorStrategy')
+      ),
+      path.value.arguments
+    )
+  })
 
   return root.toSource();
 }
