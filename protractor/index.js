@@ -128,6 +128,16 @@ module.exports = function transformer(file, api) {
                 )
             }
 
+            if (['findElement', 'findElements'].includes(method)) {
+                return j.callExpression(
+                    j.memberExpression(
+                        path.value.callee.object,
+                        j.identifier(method === 'findElement' ? '$' : '$$')
+                    ),
+                    getSelectorArgument(j, path, path.value.arguments[0], file)
+                )
+            }
+
             return j.callExpression(
                 j.memberExpression(
                     path.value.callee.object,

@@ -8,6 +8,9 @@ var dog = $$(".pet=Dog");
 $('#abc').$('#def').isExisting()
 $('#abc').$('#def').isExisting()
 
+browser.$("*[ng-model=\"first\"]").setValue(4);
+browser.$$("#gobutton")[0].click();
+
 firstNum.setValue('1');
 browser.pause(1000)
 browser.debug()

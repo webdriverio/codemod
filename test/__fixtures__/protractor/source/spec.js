@@ -8,6 +8,9 @@ var dog = element.all(by.cssContainingText('.pet', 'Dog'));
 element(by.css('#abc')).element(by.css('#def')).isPresent()
 element(by.css('#abc')).isElementPresent(by.css('#def'))
 
+browser.findElement(by.model('first')).sendKeys(4);
+browser.findElements(by.id('gobutton'))[0].click();
+
 firstNum.sendKeys('1');
 browser.sleep(1000)
 browser.explore()
