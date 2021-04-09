@@ -21,7 +21,7 @@ class TransformError extends Error {
         this.name = this.constructor.name
     }
 }
-  
+
 function getSelectorArgument (j, path, callExpr, file) {
     const args = []
     const bySelector = callExpr.callee.property.name
@@ -49,7 +49,7 @@ function getSelectorArgument (j, path, callExpr, file) {
     } else {
         throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path, file)
     }
-    
+
     if (text.regex) {
         throw new TransformError('this codemod does not support RegExp in cssContainingText', path, file)
     }
