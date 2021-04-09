@@ -1,6 +1,6 @@
 const { format } = require('util')
 
-const { SUPPORTED_SELECTORS, ELEMENT_COMMANDS } = require('./constants')
+const { SUPPORTED_SELECTORS, ELEMENT_COMMANDS, UNSUPPORTED_COMMANDS } = require('./constants')
 const {
     isCustomStrategy,
     TransformError,
@@ -110,6 +110,15 @@ module.exports = function transformer(file, api) {
                     path,
                     file
                 )
+            } else if (UNSUPPORTED_COMMANDS.includes(method)) {
+                throw new TransformError(format(
+                    `The command "${method}" has no replacement implementation ` +
+                    'in WebdriverIO. It might be depcrecated and can be removed ' +
+                    'entirely. If this method is essential for your e2e test ' +
+                    'scenarios though, please file an issue in %s and the WebdriverIO ' +
+                    'team can follow up on this.',
+                    'https://github.com/webdriverio/codemod/issues/new'
+                ), path, file)
             }
 
             return j.callExpression(

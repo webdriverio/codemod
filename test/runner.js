@@ -13,7 +13,8 @@ const frameworkTests = {
         ['./failing_byCssContainingTextRegex.js'],
         ['./failing_touchActions.js'],
         ['./failing_actions.js'],
-        ['./failing_setLocation.js']
+        ['./failing_setLocation.js'],
+        ['./failing_unsupported.js']
     ]
 }
 
