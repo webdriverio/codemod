@@ -28,9 +28,10 @@ browser.waitUntil(async () => {
     console.log('test');
     const b = 2 + 2
     let handles = await browser.getWindowHandles();
-    browser.close();
+    browser.closeWindow();
     // the parent should be 2 less than the length of all found window handlers
     browser.switchTo().window(handles.length - 2);
 })
 
 browser.switchToFrame('composeWidget');
+browser.closeWindow()

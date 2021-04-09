@@ -100,6 +100,8 @@ function replaceCommands (prtrctrCommand) {
             return 'getUrl'
         case 'wait':
             return 'waitUntil'
+        case 'close':
+            return 'closeWindow'
         case 'getAllWindowHandles':
             return 'getWindowHandles'
         default: return prtrctrCommand
