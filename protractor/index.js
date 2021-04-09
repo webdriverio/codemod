@@ -104,6 +104,12 @@ module.exports = function transformer(file, api) {
                     path,
                     file
                 )
+            } else if (method === 'setLocation') {
+                throw new TransformError(
+                    format(errorText, 'setLocation', 'https://webdriver.io/docs/api/browser/url'),
+                    path,
+                    file
+                )
             }
 
             return j.callExpression(

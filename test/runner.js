@@ -12,7 +12,8 @@ const frameworkTests = {
         ['./failing_byBinding.js'],
         ['./failing_byCssContainingTextRegex.js'],
         ['./failing_touchActions.js'],
-        ['./failing_actions.js']
+        ['./failing_actions.js'],
+        ['./failing_setLocation.js']
     ]
 }
 
