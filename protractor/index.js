@@ -192,32 +192,46 @@ module.exports = function transformer(file, api) {
      * transform by.addLocator
      */
     root.find(j.CallExpression)
-    .filter((path) => (
-        path.value.callee &&
-        path.value.callee.type === 'MemberExpression' &&
-        path.value.callee.object.name === 'by' &&
-        path.value.callee.property.name === 'addLocator'
-    ))
-    .replaceWith((path) => {
-        /**
-         * check if user uses rootSelector parameter which is not supported
-         * in WebdriverIO
-         */
-        if (path.value.arguments[1].params.length > 2) {
-            const errorText = '' +
-                `WebdriverIO doesn't support the "rootSelector" ` +
-                `parameter in the custom locator function.`
-            throw new TransformError(errorText, path, file)
-        }
+        .filter((path) => (
+            path.value.callee &&
+            path.value.callee.type === 'MemberExpression' &&
+            path.value.callee.object.name === 'by' &&
+            path.value.callee.property.name === 'addLocator'
+        ))
+        .replaceWith((path) => {
+            /**
+             * check if user uses rootSelector parameter which is not supported
+             * in WebdriverIO
+             */
+            if (path.value.arguments[1].params.length > 2) {
+                const errorText = '' +
+                    `WebdriverIO doesn't support the "rootSelector" ` +
+                    `parameter in the custom locator function.`
+                throw new TransformError(errorText, path, file)
+            }
 
-        return j.callExpression(
-            j.memberExpression(
-                j.identifier('browser'),
-                j.identifier('addLocatorStrategy')
-            ),
-            path.value.arguments
-        )
-    })
+            return j.callExpression(
+                j.memberExpression(
+                    j.identifier('browser'),
+                    j.identifier('addLocatorStrategy')
+                ),
+                path.value.arguments
+            )
+        })
+
+    /**
+     * transform `browser.switchTo().frame('composeWidget');`
+     */
+    root.find(j.MemberExpression)
+        .filter((path) => (
+            path.value.property.name === 'frame' &&
+            path.value.object.callee &&
+            path.value.object.callee.property.name === 'switchTo'
+        ))
+        .replaceWith((path) => j.memberExpression(
+            j.identifier('browser'),
+            j.identifier('switchToFrame')
+        ))
 
     return root.toSource();
 }

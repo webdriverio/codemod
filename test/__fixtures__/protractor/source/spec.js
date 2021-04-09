@@ -34,3 +34,5 @@ browser.wait(async () => {
         browser.switchTo().window(handles.length - 2);
     });
 })
+
+browser.switchTo().frame('composeWidget');

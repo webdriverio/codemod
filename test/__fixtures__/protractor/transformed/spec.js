@@ -32,3 +32,5 @@ browser.waitUntil(async () => {
     // the parent should be 2 less than the length of all found window handlers
     browser.switchTo().window(handles.length - 2);
 })
+
+browser.switchToFrame('composeWidget');
