@@ -38,3 +38,4 @@ browser.wait(async () => {
 browser.switchTo().frame('composeWidget');
 browser.close()
 browser.restart()
+browser.restartSync()

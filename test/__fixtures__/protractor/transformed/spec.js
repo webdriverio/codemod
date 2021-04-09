@@ -36,3 +36,4 @@ browser.waitUntil(async () => {
 browser.switchToFrame('composeWidget');
 browser.closeWindow()
 browser.reloadSession()
+browser.reloadSession()

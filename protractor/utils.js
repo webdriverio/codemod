@@ -103,6 +103,7 @@ function replaceCommands (prtrctrCommand) {
         case 'close':
             return 'closeWindow'
         case 'restart':
+        case 'restartSync':
             return 'reloadSession'
         case 'getAllWindowHandles':
             return 'getWindowHandles'
