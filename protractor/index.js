@@ -121,6 +121,13 @@ module.exports = function transformer(file, api) {
                 ), path, file)
             }
 
+            if (method === 'getProcessedConfig') {
+                return j.memberExpression(
+                    path.value.callee.object,
+                    j.identifier('config')
+                )
+            }
+
             return j.callExpression(
                 j.memberExpression(
                     path.value.callee.object,
@@ -221,8 +228,8 @@ module.exports = function transformer(file, api) {
                 'let',
                 [
                     j.variableDeclarator(
-                    j.identifier(path.value.expression.argument.arguments[0].params[0].name),
-                    j.awaitExpression(path.value.expression.argument.callee.object)
+                        j.identifier(path.value.expression.argument.arguments[0].params[0].name),
+                        j.awaitExpression(path.value.expression.argument.callee.object)
                     )
                 ]
                 ),

@@ -31,6 +31,10 @@ browser.waitUntil(async () => {
     browser.closeWindow();
     // the parent should be 2 less than the length of all found window handlers
     browser.switchTo().window(handles.length - 2);
+
+    const config = await browser.config
+    let config = await browser.config;
+    console.log(config);
 })
 
 browser.switchToFrame('composeWidget');

@@ -33,6 +33,11 @@ browser.wait(async () => {
         // the parent should be 2 less than the length of all found window handlers
         browser.switchTo().window(handles.length - 2);
     });
+
+    const config = await browser.getProcessedConfig()
+    await browser.getProcessedConfig().then((config) => {
+        console.log(config);
+    })
 })
 
 browser.switchTo().frame('composeWidget');
