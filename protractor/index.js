@@ -14,6 +14,18 @@ module.exports = function transformer(file, api) {
     const root = j(file.source);
 
     /**
+     * transform_
+     * browser.driver.findElement
+     * browser.findElement
+     */
+    root.find(j.MemberExpression)
+        .filter((path) => (
+            path.value.object.name === 'browser' &&
+            path.value.property.name === 'driver'
+        ))
+        .replaceWith((path) => j.identifier('browser'))
+
+    /**
      * transform:
      * element(...)
      * $('...')
@@ -157,19 +169,24 @@ module.exports = function transformer(file, api) {
             ELEMENT_COMMANDS.includes(path.value.callee.property.name)
         ))
         .replaceWith((path) => {
+            const command = path.value.callee.property.name
+            if (command === 'getWebElement') {
+                return path.value.callee.object
+            }
+
             /**
              * transform `element(by.css('#abc')).isElementPresent(by.css('#def'))`
              * to `$('#abc').$('#def')`
              */
-            if (path.value.callee.property.name === 'isElementPresent') {
+            if (command === 'isElementPresent') {
                 return j.callExpression(
                 j.memberExpression(
                     j.callExpression(
-                    j.memberExpression(
-                        path.value.callee.object,
-                        j.identifier('$')
-                    ),
-                    getSelectorArgument(j, path, path.value.arguments[0], file)
+                        j.memberExpression(
+                            path.value.callee.object,
+                            j.identifier('$')
+                        ),
+                        getSelectorArgument(j, path, path.value.arguments[0], file)
                     ),
                     j.identifier('isExisting')
                 ),
@@ -182,8 +199,8 @@ module.exports = function transformer(file, api) {
              */
             return j.callExpression(
                 j.memberExpression(
-                path.value.callee.object,
-                j.identifier(replaceCommands(path.value.callee.property.name))
+                    path.value.callee.object,
+                    j.identifier(replaceCommands(command))
                 ),
                 path.value.arguments
             )

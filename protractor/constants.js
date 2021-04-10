@@ -1,5 +1,5 @@
 exports.SUPPORTED_SELECTORS = ['id', 'model', 'css', 'binding', 'cssContainingText']
-exports.ELEMENT_COMMANDS = ['sendKeys', 'isPresent', 'isElementPresent']
+exports.ELEMENT_COMMANDS = ['sendKeys', 'isPresent', 'isElementPresent', 'getWebElement']
 exports.UNSUPPORTED_COMMANDS = [
     'angularAppRoot',
     'waitForAngularEnabled',
