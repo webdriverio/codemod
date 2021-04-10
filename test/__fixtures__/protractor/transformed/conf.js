@@ -1,7 +1,7 @@
 exports.config = {
     protocol: "https",
     hostname: "ondemand.saucelabs.com",
-    port: 4444,
+    port: 443,
     path: "/wd/hub",
 
     capabilities: [{
@@ -9,7 +9,12 @@ exports.config = {
 
         "sauce:options": {
             name: "foobar"
-        }
+        },
+
+        protocol: "http",
+        hostname: "localhost",
+        port: 4444,
+        path: "/wd/hub"
     }],
 
     specs: [

@@ -115,31 +115,35 @@ function replaceCommands (prtrctrCommand) {
     }
 }
 
+function parseSeleniumAddress (value) {
+    const u = url.parse(value)
+    remoteHostname = u.hostname
+    return [
+        this.objectProperty(
+            this.identifier('protocol'),
+            this.stringLiteral(u.protocol.slice(0, -1))
+        ),
+        this.objectProperty(
+            this.identifier('hostname'),
+            this.stringLiteral(u.hostname)
+        ),
+        this.objectProperty(
+            this.identifier('port'),
+            this.literal(parseInt(u.port || '443'))
+        ),
+        this.objectProperty(
+            this.identifier('path'),
+            this.stringLiteral(u.path)
+        )
+    ]
+}
+
 let remoteHostname = null
 function parseConfigProperties (property) {
     const name = property.key.name || property.key.value
     const value = property.value.value
     if (name === 'seleniumAddress') {
-        const u = url.parse(value)
-        remoteHostname = u.hostname
-        return [
-            this.objectProperty(
-                this.identifier('protocol'),
-                this.stringLiteral(u.protocol.slice(0, -1))
-            ),
-            this.objectProperty(
-                this.identifier('hostname'),
-                this.stringLiteral(u.hostname)
-            ),
-            this.objectProperty(
-                this.identifier('port'),
-                this.literal(parseInt(u.port))
-            ),
-            this.objectProperty(
-                this.identifier('path'),
-                this.stringLiteral(u.path)
-            )
-        ]
+        return parseSeleniumAddress.call(this, value)
     } else if (name === 'capabilities') {
         const { rootLevelConfigs, parsedCaps } = parseCapabilities.call(this, property.value.properties)
         return [
@@ -161,9 +165,7 @@ function parseCapabilities (caps) {
     for (const cap of caps) {
         const name = cap.key.name || cap.key.value
         if (name === 'name') {
-            console.log('DOO WE', remoteHostname);
             if (!remoteHostname || (!remoteHostname.includes('browserstack') && !remoteHostname.includes('saucelabs'))) {
-                console.log('AHH');
                 continue
             }
             parsedCaps.push(
@@ -177,6 +179,8 @@ function parseCapabilities (caps) {
                     ])
                 )
             )
+        } else if (name === 'seleniumAddress') {
+            parsedCaps.push(...parseSeleniumAddress.call(this, cap.value.value))
         } else {
             parsedCaps.push(cap)
         }
