@@ -235,17 +235,18 @@ module.exports = function transformer(file, api) {
         .filter((path) => (
             path.value.callee &&
             path.value.callee.type === 'MemberExpression' &&
-            ['element', 'elements'].includes(path.value.callee.property.name)
+            ['element', 'elements', 'findElement', 'findElements'].includes(path.value.callee.property.name)
         ))
         .replaceWith((path) => {
             const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
-            const chainedCommand = path.value.callee.property.name === 'element'
+            const singleElementCall = ['element', 'findElement']
+            const chainedCommand = singleElementCall.includes(path.value.callee.property.name)
                 ? isCustomStrategy ? 'custom$' : '$'
                 : isCustomStrategy ? 'custom$$' : '$$'
             return j.callExpression(
                 j.memberExpression(
-                path.value.callee.object,
-                j.identifier(chainedCommand)
+                    path.value.callee.object,
+                    j.identifier(chainedCommand)
                 ),
                 getSelectorArgument(j, path, path.value.arguments[0], file)
             )

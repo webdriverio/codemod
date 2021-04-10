@@ -83,6 +83,8 @@ function replaceCommands (prtrctrCommand) {
             return 'setValue'
         case 'isPresent':
             return 'isExisting'
+        case 'getDriver':
+            return 'parentElement'
         // browser commands
         case 'executeScript':
             return 'execute'
