@@ -1,4 +1,5 @@
 const { format } = require('util')
+const flattenDeep = require('lodash.flattendeep')
 
 const {
     SUPPORTED_SELECTORS,
@@ -13,12 +14,46 @@ const {
     TransformError,
     getSelectorArgument,
     matchesSelectorExpression,
-    replaceCommands
+    replaceCommands,
+    parseConfigProperties
 } = require('./utils')
 
 module.exports = function transformer(file, api) {
     const j = api.jscodeshift;
     const root = j(file.source);
+
+    /**
+     * transform Protractors config file
+     * ```js
+     * exports.config = {
+     *   // ...
+     * }
+     * ```
+     */
+    root.find(j.ExpressionStatement)
+        .filter((path) => (
+            path.value.expression.type === 'AssignmentExpression' &&
+            path.value.expression.left.object.name === 'exports' &&
+            path.value.expression.left.property.name === 'config' &&
+            path.value.expression.right.type === 'ObjectExpression'
+        ))
+        .replaceWith((path) => {
+            return (
+                j.expressionStatement(
+                    j.assignmentExpression(
+                        '=',
+                        path.value.expression.left,
+                        j.objectExpression(
+                            flattenDeep(
+                                path.value.expression.right.properties
+                                    .map(parseConfigProperties.bind(j))
+                                    .filter(Boolean)
+                            )
+                        )
+                    )
+                )
+            )
+        })
 
     /**
      * remove command statements that aren't useful in WebdriverIO world

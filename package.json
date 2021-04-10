@@ -24,7 +24,8 @@
     "release:major": "npm run release -- major"
   },
   "dependencies": {
-    "jscodeshift": "^0.11.0"
+    "jscodeshift": "^0.11.0",
+    "lodash.flattendeep": "^4.4.0"
   },
   "devDependencies": {
     "expect": "^26.6.2",

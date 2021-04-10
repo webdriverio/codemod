@@ -1,10 +1,11 @@
 // Tests for the calculator.
 exports.config = {
-  seleniumAddress: 'http://127.0.0.1:4444/wd/hub',
-  capabilities: {
-    'browserName': 'chrome'
-  },
-  specs: [
-    'spec.js'
-  ]
+    seleniumAddress: 'https://ondemand.saucelabs.com:4444/wd/hub',
+    capabilities: {
+        'browserName': 'chrome',
+        name: 'foobar'
+    },
+    specs: [
+        'spec.js'
+    ]
 };

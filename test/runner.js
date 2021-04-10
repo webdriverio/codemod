@@ -7,6 +7,7 @@ const Runner = require('jscodeshift/src/Runner')
 
 const frameworkTests = {
     protractor: [
+        ['./conf.js', './conf.js'],
         ['./spec.js', './spec.js'],
         ['./element.js', './element.js'],
         ['./locators.js', './locators.js'],

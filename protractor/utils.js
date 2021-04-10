@@ -1,3 +1,5 @@
+const url = require('url')
+
 function isCustomStrategy (path) {
     return !SUPPORTED_SELECTORS.includes(
         path.value.arguments[0].callee.property.name
@@ -113,10 +115,81 @@ function replaceCommands (prtrctrCommand) {
     }
 }
 
+let remoteHostname = null
+function parseConfigProperties (property) {
+    const name = property.key.name || property.key.value
+    const value = property.value.value
+    if (name === 'seleniumAddress') {
+        const u = url.parse(value)
+        remoteHostname = u.hostname
+        return [
+            this.objectProperty(
+                this.identifier('protocol'),
+                this.stringLiteral(u.protocol.slice(0, -1))
+            ),
+            this.objectProperty(
+                this.identifier('hostname'),
+                this.stringLiteral(u.hostname)
+            ),
+            this.objectProperty(
+                this.identifier('port'),
+                this.literal(parseInt(u.port))
+            ),
+            this.objectProperty(
+                this.identifier('path'),
+                this.stringLiteral(u.path)
+            )
+        ]
+    } else if (name === 'capabilities') {
+        const { rootLevelConfigs, parsedCaps } = parseCapabilities.call(this, property.value.properties)
+        return [
+            ...rootLevelConfigs,
+            this.objectProperty(
+                this.identifier(name),
+                this.arrayExpression([this.objectExpression(parsedCaps)])
+            )
+        ]
+    }
+
+    return property
+}
+
+function parseCapabilities (caps) {
+    const rootLevelConfigs = []
+    const parsedCaps = []
+
+    for (const cap of caps) {
+        const name = cap.key.name || cap.key.value
+        if (name === 'name') {
+            console.log('DOO WE', remoteHostname);
+            if (!remoteHostname || (!remoteHostname.includes('browserstack') && !remoteHostname.includes('saucelabs'))) {
+                console.log('AHH');
+                continue
+            }
+            parsedCaps.push(
+                this.objectProperty(
+                    this.literal('sauce:options'),
+                    this.objectExpression([
+                        this.objectProperty(
+                            this.identifier('name'),
+                            this.literal(cap.value.value)
+                        )
+                    ])
+                )
+            )
+        } else {
+            parsedCaps.push(cap)
+        }
+    }
+
+    return { rootLevelConfigs, parsedCaps }
+}
+
 module.exports = {
     isCustomStrategy,
     TransformError,
     getSelectorArgument,
     matchesSelectorExpression,
-    replaceCommands
+    replaceCommands,
+    parseConfigProperties
 }
