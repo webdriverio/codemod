@@ -1,6 +1,6 @@
 const { format } = require('util')
 
-const { SUPPORTED_SELECTORS, ELEMENT_COMMANDS, UNSUPPORTED_COMMANDS } = require('./constants')
+const { SUPPORTED_SELECTORS, ELEMENT_COMMANDS, UNSUPPORTED_COMMANDS, COMMANDS_TO_REMOVE } = require('./constants')
 const {
     isCustomStrategy,
     TransformError,
@@ -12,6 +12,16 @@ const {
 module.exports = function transformer(file, api) {
     const j = api.jscodeshift;
     const root = j(file.source);
+
+    /**
+     * remove command statements that aren't useful in WebdriverIO world
+     */
+    root.find(j.ExpressionStatement)
+        .filter((path) => (
+            path.value.expression.callee &&
+            COMMANDS_TO_REMOVE.includes(path.value.expression.callee.property.name)
+        ))
+        .replaceWith((path) => null)
 
     /**
      * transform_
