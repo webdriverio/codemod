@@ -5,7 +5,8 @@ const {
     ELEMENT_COMMANDS,
     UNSUPPORTED_COMMANDS,
     COMMANDS_TO_REMOVE,
-    UNSUPPORTED_COMMAND_ERROR
+    UNSUPPORTED_COMMAND_ERROR,
+    INCOMPATIBLE_COMMAND_ERROR
 } = require('./constants')
 const {
     isCustomStrategy,
@@ -115,35 +116,30 @@ module.exports = function transformer(file, api) {
             /**
              * throw error for methods that can't be transformed
              */
-            const errorText = '' +
-                'Can not transform "%s" command as it differs ' +
-                'too much from the WebdriverIO implementation. We advise ' +
-                'to refactor this code.\n\n' +
-                'For more information on WebdriverIOs replacement command, see %s'
             if (method === 'touchActions') {
                 throw new TransformError(
-                    format(errorText, 'touchActions', 'https://webdriver.io/docs/api/browser/touchAction'),
-                    path,
+                    format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/browser/touchAction'),
+                    path.value,
                     file
                 )
             } else if (method === 'actions') {
                 throw new TransformError(
-                    format(errorText, 'actions', 'https://webdriver.io/docs/api/webdriver#performactions'),
-                    path,
+                    format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/webdriver#performactions'),
+                    path.value,
                     file
                 )
             } else if (method === 'setLocation') {
                 throw new TransformError(
-                    format(errorText, 'setLocation', 'https://webdriver.io/docs/api/browser/url'),
-                    path,
+                    format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/browser/url'),
+                    path.value,
                     file
                 )
             } else if (UNSUPPORTED_COMMANDS.includes(method)) {
-                throw new TransformError(format(
-                    UNSUPPORTED_COMMAND_ERROR,
-                    method,
-                    'https://github.com/webdriverio/codemod/issues/new'
-                ), path, file)
+                throw new TransformError(
+                    format(UNSUPPORTED_COMMAND_ERROR, method, 'https://github.com/webdriverio/codemod/issues/new'),
+                    path.value.callee.property,
+                    file
+                )
             }
 
             if (method === 'getProcessedConfig') {
@@ -184,12 +180,18 @@ module.exports = function transformer(file, api) {
         .replaceWith((path) => {
             const command = path.value.callee.property.name
 
-            if (UNSUPPORTED_COMMANDS.includes(command)) {
+            if (command === 'getCssValue') {
+                throw new TransformError(
+                    format(INCOMPATIBLE_COMMAND_ERROR, command, 'https://webdriver.io/docs/api/element/getCSSProperty/'),
+                    path.value.callee.property,
+                    file
+                )
+            } else if (UNSUPPORTED_COMMANDS.includes(command)) {
                 throw new TransformError(format(
                     UNSUPPORTED_COMMAND_ERROR,
                     command,
                     'https://github.com/webdriverio/codemod/issues/new'
-                ), path, file)
+                ), path.value.callee.property, file)
             }
 
             if (command === 'getWebElement') {

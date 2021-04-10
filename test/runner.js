@@ -16,7 +16,8 @@ const frameworkTests = {
         ['./failing_actions.js'],
         ['./failing_setLocation.js'],
         ['./failing_unsupported.js'],
-        ['./failing_evaluate.js']
+        ['./failing_evaluate.js'],
+        ['./failing_getCssValue.js']
     ]
 }
 

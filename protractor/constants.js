@@ -5,7 +5,8 @@ exports.ELEMENT_COMMANDS = [
     'isElementPresent',
     'getWebElement',
     'evaluate',
-    'getDriver'
+    'getDriver',
+    'getCssValue'
 ]
 exports.COMMANDS_TO_REMOVE = ['allowAnimations']
 exports.UNSUPPORTED_COMMANDS = [
@@ -27,3 +28,9 @@ exports.UNSUPPORTED_COMMAND_ERROR = '' +
     'It might be depcrecated and can be removed entirely. ' +
     'If this method is essential for your e2e test scenarios though, ' +
     'please file an issue in %s and the WebdriverIO team can follow up on this.'
+
+exports.INCOMPATIBLE_COMMAND_ERROR = '' +
+    'Can not transform "%s" command as it differs ' +
+    'too much from the WebdriverIO implementation. We advise ' +
+    'to refactor this code.\n\n' +
+    'For more information on WebdriverIOs replacement command, see %s'

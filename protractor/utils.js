@@ -5,18 +5,18 @@ function isCustomStrategy (path) {
 }
 
 class TransformError extends Error {
-    constructor(message, path, file) {
+    constructor(message, expr, file) {
         const source = file.source.split('\n')
-        const line = source.slice(path.value.loc.start.line - 1, path.value.loc.end.line)[0]
-        const expression = line.slice(0, path.value.loc.end.column)
-        const errorMsg = `Error transforming ${file.path.replace(process.cwd(), '')}:${path.value.loc.start.line}`
+        const line = source.slice(expr.loc.start.line - 1, expr.loc.end.line)[0]
+        const expression = line.slice(0, expr.loc.end.column)
+        const errorMsg = `Error transforming ${file.path.replace(process.cwd(), '')}:${expr.loc.start.line}`
         super(errorMsg)
         this.stack = (
             errorMsg + '\n\n' +
             `> ${expression}\n` +
-            ' '.repeat(path.value.callee.loc.start.column + 2) + '^\n\n' +
+            ' '.repeat(expr.loc.start.column + 2) + '^\n\n' +
             message + '\n' +
-            `  at ${file.path}:${path.value.loc.start.line}:${path.value.loc.start.column}`
+            `  at ${file.path}:${expr.loc.start.line}:${expr.loc.start.column}`
         )
         this.name = this.constructor.name
     }
@@ -47,14 +47,14 @@ function getSelectorArgument (j, path, callExpr, file) {
             )
         )
     } else {
-        throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path, file)
+        throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path.value, file)
     }
 
     if (text.regex) {
-        throw new TransformError('this codemod does not support RegExp in cssContainingText', path, file)
+        throw new TransformError('this codemod does not support RegExp in cssContainingText', path.value, file)
     }
     } else if (bySelector === 'binding') {
-        throw new TransformError('Binding selectors (by.binding) are not supported, please consider refactor this line', path, file)
+        throw new TransformError('Binding selectors (by.binding) are not supported, please consider refactor this line', path.value, file)
     } else {
         // we assume a custom locator strategy
         const selectorStrategyName = callExpr.callee.property.name
