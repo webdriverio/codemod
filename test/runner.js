@@ -8,13 +8,15 @@ const Runner = require('jscodeshift/src/Runner')
 const frameworkTests = {
     protractor: [
         ['./spec.js', './spec.js'],
+        ['./element.js', './element.js'],
         ['./locators.js', './locators.js'],
         ['./failing_byBinding.js'],
         ['./failing_byCssContainingTextRegex.js'],
         ['./failing_touchActions.js'],
         ['./failing_actions.js'],
         ['./failing_setLocation.js'],
-        ['./failing_unsupported.js']
+        ['./failing_unsupported.js'],
+        ['./failing_evaluate.js']
     ]
 }
 
@@ -39,7 +41,7 @@ async function runTest (framework, tests) {
 
         if (result.error) {
             if (desired) {
-                throw new Error('Failed to compile')
+                throw new Error(`Failed to compile ${source} to ${desired}`)
             }
 
             continue

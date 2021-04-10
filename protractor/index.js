@@ -1,6 +1,12 @@
 const { format } = require('util')
 
-const { SUPPORTED_SELECTORS, ELEMENT_COMMANDS, UNSUPPORTED_COMMANDS, COMMANDS_TO_REMOVE } = require('./constants')
+const {
+    SUPPORTED_SELECTORS,
+    ELEMENT_COMMANDS,
+    UNSUPPORTED_COMMANDS,
+    COMMANDS_TO_REMOVE,
+    UNSUPPORTED_COMMAND_ERROR
+} = require('./constants')
 const {
     isCustomStrategy,
     TransformError,
@@ -134,11 +140,8 @@ module.exports = function transformer(file, api) {
                 )
             } else if (UNSUPPORTED_COMMANDS.includes(method)) {
                 throw new TransformError(format(
-                    `The command "${method}" has no replacement implementation ` +
-                    'in WebdriverIO. It might be depcrecated and can be removed ' +
-                    'entirely. If this method is essential for your e2e test ' +
-                    'scenarios though, please file an issue in %s and the WebdriverIO ' +
-                    'team can follow up on this.',
+                    UNSUPPORTED_COMMAND_ERROR,
+                    method,
                     'https://github.com/webdriverio/codemod/issues/new'
                 ), path, file)
             }
@@ -180,6 +183,15 @@ module.exports = function transformer(file, api) {
         ))
         .replaceWith((path) => {
             const command = path.value.callee.property.name
+
+            if (UNSUPPORTED_COMMANDS.includes(command)) {
+                throw new TransformError(format(
+                    UNSUPPORTED_COMMAND_ERROR,
+                    command,
+                    'https://github.com/webdriverio/codemod/issues/new'
+                ), path, file)
+            }
+
             if (command === 'getWebElement') {
                 return path.value.callee.object
             }
