@@ -23,3 +23,9 @@ $ npx jscodeshift -t ./node_modules/@wdio/codemod/<framework> <path>
 # e.g. to transform Protractor code:
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./e2e/
 ```
+
+You can transform tests as well as config files, e.g.:
+
+![Codemod Usage Example][example]
+
+[example]: /.github/assets/example.gif "Codemod Usage Example"
