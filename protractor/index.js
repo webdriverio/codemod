@@ -21,6 +21,7 @@ const {
 module.exports = function transformer(file, api) {
     const j = api.jscodeshift;
     const root = j(file.source);
+    j.file = file
 
     /**
      * transform Protractors config file
@@ -38,6 +39,25 @@ module.exports = function transformer(file, api) {
             path.value.expression.right.type === 'ObjectExpression'
         ))
         .replaceWith((path) => {
+            const props = path.value.expression.right.properties
+            let hasKobitonUserProp = props.find(({ key }) => (key.name || key.value) === 'kobitonUser')
+            let hasKobitonKeyProp = props.find(({ key }) => (key.name || key.value) === 'kobitonKey')
+            const kobitonConnectionOptions = hasKobitonUserProp && hasKobitonKeyProp
+                ? [
+                    j.objectProperty(
+                        j.identifier('protocol'),
+                        j.literal('https')
+                    ),
+                    j.objectProperty(
+                        j.identifier('port'),
+                        j.identifier('443')
+                    ),
+                    j.objectProperty(
+                        j.identifier('hostname'),
+                        j.literal('api.kobiton.com')
+                    )
+                ]
+                : []
             return (
                 j.expressionStatement(
                     j.assignmentExpression(
@@ -45,9 +65,10 @@ module.exports = function transformer(file, api) {
                         path.value.expression.left,
                         j.objectExpression(
                             flattenDeep(
-                                path.value.expression.right.properties
+                                props
                                     .map(parseConfigProperties.bind(j))
                                     .filter(Boolean)
+                                    .concat(kobitonConnectionOptions)
                             )
                         )
                     )
