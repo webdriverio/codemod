@@ -81,7 +81,6 @@ exports.IGNORED_CAPABILITIES = [
 ]
 
 exports.REPLACE_CONFIG_KEYS = {
-    multiCapabilities: 'capabilities',
     sauceUser: 'user',
     testobjectUser: 'user',
     browserstackUser: 'user',

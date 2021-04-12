@@ -9,7 +9,10 @@ exports.config = {
         shardTestFiles: true
     },
     multiCapabilities: [{
-        browserName: 'chrome'
+        'browserName': 'chrome',
+        seleniumAddress: 'http://localhost:4444/wd/hub',
+        maxInstances: 123,
+        shardTestFiles: true
     }],
     specs: [
         'spec.js'

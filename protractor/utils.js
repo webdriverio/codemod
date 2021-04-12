@@ -161,6 +161,24 @@ function parseConfigProperties (property) {
                 this.arrayExpression([this.objectExpression(parsedCaps)])
             )
         ]
+    } else if (name === 'multiCapabilities') {
+        const rlc = []
+        const pc = []
+
+        for (const caps of property.value.elements) {
+            const { rootLevelConfigs, parsedCaps } = parseCapabilities.call(this, caps.properties)
+            rlc.push(...rootLevelConfigs)
+            pc.push(this.objectExpression(parsedCaps))
+        }
+
+        return [
+            ...rlc,
+            this.objectProperty(
+                this.identifier('capabilities'),
+                this.arrayExpression(pc)
+            )
+        ]
+
     } else if (REPLACE_CONFIG_KEYS[name]) {
         return this.objectProperty(
             this.identifier(REPLACE_CONFIG_KEYS[name]),

@@ -19,7 +19,12 @@ exports.config = {
     }],
 
     capabilities: [{
-        browserName: 'chrome'
+        'browserName': 'chrome',
+        protocol: "http",
+        hostname: "localhost",
+        port: 4444,
+        path: "/wd/hub",
+        maxInstances: 123
     }],
 
     specs: [
