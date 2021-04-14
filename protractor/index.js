@@ -390,5 +390,24 @@ module.exports = function transformer(file, api) {
             j.identifier('switchToFrame')
         ))
 
+    /**
+     * no support for ExpectedConditions
+     */
+    root.find(j.MemberExpression)
+        .filter((path) => (
+            path.value.object.name === 'protractor' &&
+            path.value.property.name === 'ExpectedConditions'
+        ))
+        .replaceWith((path) => {
+            throw new TransformError('' +
+                'WebdriverIO does not support ExpectedConditions. ' +
+                'We advise to use `browser.waitUntil(...)` to wait ' +
+                'for certain events to take place. For more information ' +
+                'on this, see https://webdriver.io/docs/api/browser/waitUntil.',
+                path.value,
+                file
+            )
+        })
+
     return root.toSource();
 }
