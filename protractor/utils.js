@@ -52,7 +52,9 @@ function getSelectorArgument (j, path, callExpr, file) {
     } else if (bySelector === 'cssContainingText') {
         const text = callExpr.arguments[1]
 
-        if (text.type === 'Literal') {
+        if (text.regex) {
+            throw new TransformError('this codemod does not support RegExp in cssContainingText', path.value, file)
+        } else if (text.type === 'Literal') {
             return [j.literal(`${arg.value}=${text.value}`)]
         } else if (text.type === 'Identifier') {
             return [
@@ -62,8 +64,6 @@ function getSelectorArgument (j, path, callExpr, file) {
                     j.identifier(text.name)
                 )
             ]
-        } if (text.regex) {
-            throw new TransformError('this codemod does not support RegExp in cssContainingText', path.value, file)
         } else {
             throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path.value, file)
         }

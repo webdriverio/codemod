@@ -7,20 +7,20 @@ const Runner = require('jscodeshift/src/Runner')
 
 const frameworkTests = {
     protractor: [
-        // ['./conf.js', './conf.js'],
+        ['./conf.js', './conf.js'],
         ['./spec.js', './spec.js'],
-        // ['./element.js', './element.js'],
-        // ['./locators.js', './locators.js'],
-        // ['./failing_byBinding.js'],
-        // ['./failing_byCssContainingTextRegex.js'],
-        // ['./failing_touchActions.js'],
-        // ['./failing_actions.js'],
-        // ['./failing_setLocation.js'],
-        // ['./failing_unsupported.js'],
-        // ['./failing_evaluate.js'],
-        // ['./failing_getCssValue.js'],
-        // ['./failing_expectedConditions.js'],
-        // ['./failing_selector.js'],
+        ['./element.js', './element.js'],
+        ['./locators.js', './locators.js'],
+        ['./failing_byBinding.js'],
+        ['./failing_byCssContainingTextRegex.js'],
+        ['./failing_touchActions.js'],
+        ['./failing_actions.js'],
+        ['./failing_setLocation.js'],
+        ['./failing_unsupported.js'],
+        ['./failing_evaluate.js'],
+        ['./failing_getCssValue.js'],
+        ['./failing_expectedConditions.js'],
+        ['./failing_selector.js'],
         ['./failing_submit.js'],
         ['./failing_clone.js']
     ]
