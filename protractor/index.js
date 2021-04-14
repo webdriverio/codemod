@@ -82,12 +82,17 @@ module.exports = function transformer(file, api) {
      * remove command statements that aren't useful in WebdriverIO world
      */
     root.find(j.ExpressionStatement)
-        .filter((path) => (
-            path.value.expression.callee &&
-            path.value.expression.callee.property &&
-            COMMANDS_TO_REMOVE.includes(path.value.expression.callee.property.name)
-        ))
-        .replaceWith((path) => null)
+        .filter((path) => {
+            const expr = (
+                path.value.expression.callee ||
+                (
+                    path.value.expression.argument &&
+                    path.value.expression.argument.callee
+                )
+            )
+            return (expr && expr.property && COMMANDS_TO_REMOVE.includes(expr.property.name))
+        })
+        .remove()
 
     /**
      * transform_

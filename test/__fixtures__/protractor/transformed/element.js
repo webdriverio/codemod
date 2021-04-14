@@ -3,6 +3,8 @@ $('.parent');
 browser.$('.parent');
 browser.$('.parent');
 
+(async () => {})();
+
 // Using getDriver to find the parent web element to find the cat li
 var liDog = $('.dog');
 var liCat = liDog.parentElement().$('.cat');
