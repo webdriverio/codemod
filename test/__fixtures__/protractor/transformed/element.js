@@ -7,3 +7,20 @@ browser.$('.parent');
 var liDog = $('.dog');
 var liCat = liDog.parentElement().$('.cat');
 var lis = liDog.parentElement().$$('li');
+
+var li = $('//ul/li/a');
+expect($('a').getText()).toBe('Google');
+var doge = $("*=Doge");
+var dog = $("*[name=\"dog_name\"]");
+var wideElement = $(function() {
+    var spans = document.querySelectorAll('span');
+    for (var i = 0; i < spans.length; ++i) {
+        if (spans[i].offsetWidth > 100) {
+            return spans[i];
+        }
+    }
+});
+expect($("=Google").getTagName()).toBe('a');
+var allOptions = $$("select[ng-options=\"c for c in colors\"] option");
+$("button*=Save");
+$("button=Save");

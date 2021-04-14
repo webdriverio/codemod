@@ -82,6 +82,7 @@ module.exports = function transformer(file, api) {
     root.find(j.ExpressionStatement)
         .filter((path) => (
             path.value.expression.callee &&
+            path.value.expression.callee.property &&
             COMMANDS_TO_REMOVE.includes(path.value.expression.callee.property.name)
         ))
         .replaceWith((path) => null)

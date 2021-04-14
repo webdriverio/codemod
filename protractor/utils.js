@@ -4,6 +4,7 @@ const { format } = require('util')
 const {
     IGNORED_CONFIG_PROPERTIES,
     UNSUPPORTED_CONFIG_OPTION_ERROR,
+    UNSUPPORTED_SELECTOR_STRATEGIES,
     REPLACE_CONFIG_KEYS,
     IGNORED_CAPABILITIES
 } = require('./constants')
@@ -33,49 +34,65 @@ class TransformError extends Error {
 }
 
 function getSelectorArgument (j, path, callExpr, file) {
-    const args = []
     const bySelector = callExpr.callee.property.name
+    const arg = callExpr.arguments[0]
 
-    if (bySelector === 'id') {
-        args.push(j.literal(`#${callExpr.arguments[0].value}`))
+    if (Object.keys(UNSUPPORTED_SELECTOR_STRATEGIES).includes(bySelector)) {
+        throw new TransformError(
+            UNSUPPORTED_SELECTOR_STRATEGIES[bySelector],
+            path.value,
+            file
+        )
+    } else if (bySelector === 'id') {
+        return [j.literal(`#${arg.value}`)]
     } else if (bySelector === 'model') {
-        args.push(j.literal(`*[ng-model="${callExpr.arguments[0].value}"]`))
+        return [j.literal(`*[ng-model="${arg.value}"]`)]
     } else if (bySelector === 'css') {
-        args.push(...callExpr.arguments)
+        return [...callExpr.arguments]
     } else if (bySelector === 'cssContainingText') {
-        const selector = callExpr.arguments[0]
         const text = callExpr.arguments[1]
 
-    if (text.type === 'Literal') {
-        args.push(j.literal(`${selector.value}=${text.value}`))
-    } else if (text.type === 'Identifier') {
-        args.push(
-            j.binaryExpression(
-                '+',
-                j.literal(selector.value + '='),
-                j.identifier(text.name)
-            )
-        )
-    } else {
-        throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path.value, file)
+        if (text.type === 'Literal') {
+            return [j.literal(`${arg.value}=${text.value}`)]
+        } else if (text.type === 'Identifier') {
+            return [
+                j.binaryExpression(
+                    '+',
+                    j.literal(arg.value + '='),
+                    j.identifier(text.name)
+                )
+            ]
+        } if (text.regex) {
+            throw new TransformError('this codemod does not support RegExp in cssContainingText', path.value, file)
+        } else {
+            throw new TransformError('expect 2nd parameter of cssContainingText to be a literal or identifier', path.value, file)
+        }
+    } else if (bySelector === 'xpath' || bySelector === 'tagName' || bySelector === 'js') {
+        return [arg]
+    } else if (bySelector === 'linkText') {
+        return [j.literal(`=${arg.value}`)]
+    } else if (bySelector === 'partialLinkText') {
+        return [j.literal(`*=${arg.value}`)]
+    } else if (bySelector === 'name') {
+        return [j.literal(`*[name="${arg.value}"]`)]
+    } else if (bySelector === 'className') {
+        return [j.literal(`.${arg.value}`)]
+    } else if (bySelector === 'options') {
+        return [j.literal(`select[ng-options="${arg.value}"] option`)]
+    } else if (bySelector === 'buttonText') {
+        return [j.literal(`button=${arg.value}`)]
+    } else if (bySelector === 'partialButtonText') {
+        return [j.literal(`button*=${arg.value}`)]
     }
 
-    if (text.regex) {
-        throw new TransformError('this codemod does not support RegExp in cssContainingText', path.value, file)
-    }
-    } else if (bySelector === 'binding') {
-        throw new TransformError('Binding selectors (by.binding) are not supported, please consider refactor this line', path.value, file)
-    } else {
-        // we assume a custom locator strategy
-        const selectorStrategyName = callExpr.callee.property.name
-        const selector = callExpr.arguments[0].value
-        args.push(
-            j.literal(selectorStrategyName),
-            j.literal(selector)
-        )
-    }
 
-    return args
+    // we assume a custom locator strategy
+    const selectorStrategyName = callExpr.callee.property.name
+    const selector = callExpr.arguments[0].value
+    return [
+        j.literal(selectorStrategyName),
+        j.literal(selector)
+    ]
 }
 
 function matchesSelectorExpression (path) {
