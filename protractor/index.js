@@ -214,6 +214,8 @@ module.exports = function transformer(file, api) {
         ))
         .replaceWith((path) => {
             const method = path.value.callee.property.name
+            let args = path.value.arguments
+
             /**
              * throw error for methods that can't be transformed
              */
@@ -241,23 +243,21 @@ module.exports = function transformer(file, api) {
                     path.value.callee.property,
                     file
                 )
-            }
-
-            if (method === 'getProcessedConfig') {
+            } else if (method === 'getProcessedConfig') {
                 return j.memberExpression(
                     path.value.callee.object,
                     j.identifier('config')
                 )
-            }
-
-            if (['findElement', 'findElements'].includes(method)) {
+            } else if (['findElement', 'findElements'].includes(method)) {
                 return j.callExpression(
                     j.memberExpression(
                         path.value.callee.object,
                         j.identifier(method === 'findElement' ? '$' : '$$')
                     ),
-                    getSelectorArgument(j, path, path.value.arguments[0], file)
+                    getSelectorArgument(j, path, args[0], file)
                 )
+            } else if (method === 'get') {
+                args = path.value.arguments.slice(0, 1)
             }
 
             return j.callExpression(
@@ -265,7 +265,7 @@ module.exports = function transformer(file, api) {
                     path.value.callee.object,
                     j.identifier(replaceCommands(method))
                 ),
-                path.value.arguments
+                args
             )
         })
 
