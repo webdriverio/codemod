@@ -166,19 +166,19 @@ module.exports = function transformer(file, api) {
      * browser.actions().sendKeys(protractor.Key.ENTER).perform();
      * browser.keys('Enter')
      */
-    root.find(j.ExpressionStatement)
+    root.find(j.CallExpression)
         .filter((path) => (
-            path.value.expression.callee &&
-            path.value.expression.callee.object &&
-            path.value.expression.callee.object.callee &&
-            path.value.expression.callee.object.callee.object &&
-            path.value.expression.callee.object.callee.object.callee &&
-            path.value.expression.callee.object.callee.object.callee.property &&
-            path.value.expression.callee.object.callee.object.callee.property.name === 'actions' &&
-            path.value.expression.callee.object.callee.property.name === 'sendKeys'
+            path.value.callee &&
+            path.value.callee.object &&
+            path.value.callee.object.callee &&
+            path.value.callee.object.callee.object &&
+            path.value.callee.object.callee.object.callee &&
+            path.value.callee.object.callee.object.callee.property &&
+            path.value.callee.object.callee.object.callee.property.name === 'actions' &&
+            path.value.callee.object.callee.property.name === 'sendKeys'
         ))
         .replaceWith((path) => {
-            const param = path.value.expression.callee.object.arguments[0]
+            const param = path.value.callee.object.arguments[0]
             console.log(param.object.object.name);
             if (!param.object.object || param.object.object.name !== 'protractor' || param.object.property.name !== 'Key') {
                 throw new TransformError('' +
@@ -190,16 +190,14 @@ module.exports = function transformer(file, api) {
             }
 
             const key = param.property.name.slice(0, 1).toUpperCase() + camelCase(param.property.name).slice(1)
-            return j.expressionStatement(
-                j.callExpression(
-                    j.memberExpression(
-                        j.identifier('browser'),
-                        j.identifier('keys')
-                    ),
-                    [
-                        j.literal(key)
-                    ]
-                )
+            return j.callExpression(
+                j.memberExpression(
+                    j.identifier('browser'),
+                    j.identifier('keys')
+                ),
+                [
+                    j.literal(key)
+                ]
             )
         })
 
