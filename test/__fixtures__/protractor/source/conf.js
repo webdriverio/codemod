@@ -6,7 +6,13 @@ exports.config = {
         name: 'foobar',
         seleniumAddress: 'http://localhost:4444/wd/hub',
         maxInstances: 123,
-        shardTestFiles: true
+        shardTestFiles: true,
+        chromeOptions: {
+            args: ['foobar']
+        },
+        firefoxOptions: {
+            args: ['foobar']
+        }
     },
     multiCapabilities: [{
         'browserName': 'chrome',

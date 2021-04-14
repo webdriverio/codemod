@@ -333,6 +333,20 @@ function parseCapabilities (caps) {
             )
         } else if (name === 'seleniumAddress') {
             parsedCaps.push(...parseSeleniumAddress.call(this, cap.value.value))
+        } else if (name === 'chromeOptions') {
+            parsedCaps.push(
+                this.objectProperty(
+                    this.literal('goog:chromeOptions'),
+                    cap.value
+                )
+            )
+        } else if (name === 'firefoxOptions') {
+            parsedCaps.push(
+                this.objectProperty(
+                    this.literal('moz:firefoxOptions'),
+                    cap.value
+                )
+            )
         } else if (!IGNORED_CAPABILITIES.includes(name)) {
             parsedCaps.push(cap)
         }

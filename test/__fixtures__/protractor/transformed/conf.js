@@ -15,7 +15,15 @@ exports.config = {
         hostname: "localhost",
         port: 4444,
         path: "/wd/hub",
-        maxInstances: 123
+        maxInstances: 123,
+
+        "goog:chromeOptions": {
+            args: ['foobar']
+        },
+
+        "moz:firefoxOptions": {
+            args: ['foobar']
+        }
     }],
 
     capabilities: [{
