@@ -258,6 +258,36 @@ module.exports = function transformer(file, api) {
                 )
             } else if (method === 'get') {
                 args = path.value.arguments.slice(0, 1)
+            } else if (method === 'wait' && args.length > 1) {
+                return j.callExpression(
+                    j.memberExpression(
+                        path.value.callee.object,
+                        j.identifier(replaceCommands(method))
+                    ),
+                    [
+                        args[0],
+                        j.objectExpression([
+                            ...(args[1]
+                                ? [
+                                    j.objectProperty(
+                                        j.identifier('timeout'),
+                                        args[1]
+                                    )
+                                ]
+                                : []
+                            ),
+                            ...(args[2]
+                                ? [
+                                    j.objectProperty(
+                                        j.identifier('timeoutMsg'),
+                                        args[2]
+                                    )
+                                ]
+                                : []
+                            )
+                        ])
+                    ]
+                )
             }
 
             return j.callExpression(

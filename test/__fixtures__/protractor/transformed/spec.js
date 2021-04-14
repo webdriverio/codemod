@@ -20,10 +20,6 @@ const url = browser.getUrl()
 const url2 = browser.getUrl()
 browser.execute(function() {console.error('error from test'); });
 
-browser.waitUntil(async () => {
-    return await this.pageLoaded();
-}, 3000, 'timeout');
-
 ;(async () => {
     let handles = await browser.getWindowHandles();
     browser.switchTo().window(handles[handles.length - 1])
@@ -51,3 +47,15 @@ $("#foo").clearValue()
 expect(foo.elementId).not.toBe(undefined);
 
 browser.keys("ArrowDown");
+
+browser.waitUntil(async () => {
+    return await this.pageLoaded();
+}, {
+    timeout: this.timeout.xl,
+    timeoutMsg: 'timeout: waiting for page to load. The url is: ' + this.url
+})
+browser.waitUntil(async () => {
+    return await this.pageLoaded();
+}, {
+    timeout: 12345
+})

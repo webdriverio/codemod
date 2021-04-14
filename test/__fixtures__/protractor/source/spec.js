@@ -20,10 +20,6 @@ const url = browser.getCurrentUrl()
 const url2 = browser.getLocationAbsUrl()
 browser.executeScript(function() {console.error('error from test'); });
 
-browser.wait(async () => {
-    return await this.pageLoaded();
-}, 3000, 'timeout');
-
 ;(async () => {
     await browser.getAllWindowHandles().then(handles => {
         browser.switchTo().window(handles[handles.length - 1])
@@ -54,3 +50,10 @@ element(by.id('foo')).clear()
 expect(foo.getId()).not.toBe(undefined);
 
 browser.actions().sendKeys(protractor.Key.ARROW_DOWN).perform();
+
+browser.wait(async () => {
+    return await this.pageLoaded();
+}, this.timeout.xl, 'timeout: waiting for page to load. The url is: ' + this.url)
+browser.wait(async () => {
+    return await this.pageLoaded();
+}, 12345)
