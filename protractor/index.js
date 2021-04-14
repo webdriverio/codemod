@@ -451,16 +451,24 @@ module.exports = function transformer(file, api) {
      * no support for ExpectedConditions
      */
     root.find(j.MemberExpression)
-        .filter((path) => (
-            path.value.object.name === 'protractor' &&
-            path.value.property.name === 'ExpectedConditions'
-        ))
+        .filter((path) => path.value.object.name === 'protractor')
         .replaceWith((path) => {
+            if (path.value.property.name === 'ExpectedConditions') {
+                throw new TransformError('' +
+                    'WebdriverIO does not support ExpectedConditions. ' +
+                    'We advise to use `browser.waitUntil(...)` to wait ' +
+                    'for certain events to take place. For more information ' +
+                    'on this, see https://webdriver.io/docs/api/browser/waitUntil.',
+                    path.value,
+                    file
+                )
+            }
+
             throw new TransformError('' +
-                'WebdriverIO does not support ExpectedConditions. ' +
-                'We advise to use `browser.waitUntil(...)` to wait ' +
-                'for certain events to take place. For more information ' +
-                'on this, see https://webdriver.io/docs/api/browser/waitUntil.',
+                `"${path.value.object.name}.${path.value.property.name}" ` +
+                'is unknown to this codemod. If this kind of code appears ' +
+                'often in your code base, please raise an issue in the codemod ' +
+                'repository: https://github.com/webdriverio/codemod/issues/new.',
                 path.value,
                 file
             )
