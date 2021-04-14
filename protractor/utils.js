@@ -136,6 +136,8 @@ function replaceCommands (prtrctrCommand) {
             return 'reloadSession'
         case 'getAllWindowHandles':
             return 'getWindowHandles'
+        case 'clear':
+            return 'clearValue'
         default: return prtrctrCommand
     }
 }

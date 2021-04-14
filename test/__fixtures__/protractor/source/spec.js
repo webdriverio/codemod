@@ -47,3 +47,8 @@ browser.switchTo().frame('composeWidget');
 browser.close()
 browser.restart()
 browser.restartSync()
+
+var foo = element(by.id('foo'));
+foo.clear();
+element(by.id('foo')).clear()
+expect(foo.getId()).not.toBe(undefined);

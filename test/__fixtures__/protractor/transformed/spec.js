@@ -44,3 +44,8 @@ browser.switchToFrame('composeWidget');
 browser.closeWindow()
 browser.reloadSession()
 browser.reloadSession()
+
+var foo = $("#foo");
+foo.clearValue();
+$("#foo").clearValue()
+expect(foo.elementId).not.toBe(undefined);

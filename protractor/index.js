@@ -6,6 +6,7 @@ const {
     ELEMENT_COMMANDS,
     UNSUPPORTED_COMMANDS,
     COMMANDS_TO_REMOVE,
+    UNSUPPORTED_COMMAND_ADVICE,
     UNSUPPORTED_COMMAND_ERROR,
     INCOMPATIBLE_COMMAND_ERROR
 } = require('./constants')
@@ -243,23 +244,35 @@ module.exports = function transformer(file, api) {
                     path.value.callee.property,
                     file
                 )
+            } else if (command === 'submit') {
+                throw new TransformError(
+                    format(
+                        UNSUPPORTED_COMMAND_ADVICE,
+                        command,
+                        'use the click command to click on the submit button',
+                        'https://webdriver.io/docs/api/element/click'
+                    ),
+                    path.value,
+                    file
+                )
             } else if (UNSUPPORTED_COMMANDS.includes(command)) {
                 throw new TransformError(format(
                     UNSUPPORTED_COMMAND_ERROR,
                     command,
                     'https://github.com/webdriverio/codemod/issues/new'
                 ), path.value.callee.property, file)
-            }
-
-            if (command === 'getWebElement') {
+            } else if (command === 'getWebElement') {
                 return path.value.callee.object
-            }
-
-            /**
-             * transform `element(by.css('#abc')).isElementPresent(by.css('#def'))`
-             * to `$('#abc').$('#def')`
-             */
-            if (command === 'isElementPresent') {
+            } else if (command === 'getId') {
+                return j.memberExpression(
+                    path.value.callee.object,
+                    j.identifier('elementId')
+                )
+            } else if (command === 'isElementPresent') {
+                /**
+                 * transform `element(by.css('#abc')).isElementPresent(by.css('#def'))`
+                 * to `$('#abc').$('#def')`
+                 */
                 return j.callExpression(
                 j.memberExpression(
                     j.callExpression(

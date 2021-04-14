@@ -34,7 +34,11 @@ exports.ELEMENT_COMMANDS = [
     'getWebElement',
     'evaluate',
     'getDriver',
-    'getCssValue'
+    'getCssValue',
+    'clear',
+    'submit',
+    'getId',
+    'clone'
 ]
 exports.COMMANDS_TO_REMOVE = ['allowAnimations']
 exports.UNSUPPORTED_COMMANDS = [
@@ -48,7 +52,8 @@ exports.UNSUPPORTED_COMMANDS = [
     'removeMockModule',
     'getRegisteredMockModules',
     'controlFlowIsEnabled',
-    'evaluate'
+    'evaluate',
+    'clone'
 ]
 
 exports.UNSUPPORTED_COMMAND_ERROR = '' +
@@ -62,6 +67,10 @@ exports.INCOMPATIBLE_COMMAND_ERROR = '' +
     'too much from the WebdriverIO implementation. We advise ' +
     'to refactor this code.\n\n' +
     'For more information on WebdriverIOs replacement command, see %s'
+
+exports.UNSUPPORTED_COMMAND_ADVICE = '' +
+'The command "%s" is not supported in WebdriverIO. We advise to ' +
+'%s instead. For more information on this configuration, see %s.'
 
 exports.IGNORED_CONFIG_PROPERTIES = [
     'seleniumServerStartTimeout',
