@@ -52,3 +52,5 @@ var foo = element(by.id('foo'));
 foo.clear();
 element(by.id('foo')).clear()
 expect(foo.getId()).not.toBe(undefined);
+
+browser.actions().sendKeys(protractor.Key.ARROW_DOWN).perform();

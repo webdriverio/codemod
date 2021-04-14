@@ -49,3 +49,5 @@ var foo = $("#foo");
 foo.clearValue();
 $("#foo").clearValue()
 expect(foo.elementId).not.toBe(undefined);
+
+browser.keys("ArrowDown");

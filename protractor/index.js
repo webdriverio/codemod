@@ -1,4 +1,5 @@
 const { format } = require('util')
+const camelCase = require('camelcase')
 const flattenDeep = require('lodash.flattendeep')
 
 const {
@@ -157,6 +158,48 @@ module.exports = function transformer(file, api) {
             return j.callExpression(
                 j.identifier('$$'),
                 getSelectorArgument(j, path, path.value.arguments[0], file)
+            )
+        })
+
+    /**
+     * transform
+     * browser.actions().sendKeys(protractor.Key.ENTER).perform();
+     * browser.keys('Enter')
+     */
+    root.find(j.ExpressionStatement)
+        .filter((path) => (
+            path.value.expression.callee &&
+            path.value.expression.callee.object &&
+            path.value.expression.callee.object.callee &&
+            path.value.expression.callee.object.callee.object &&
+            path.value.expression.callee.object.callee.object.callee &&
+            path.value.expression.callee.object.callee.object.callee.property &&
+            path.value.expression.callee.object.callee.object.callee.property.name === 'actions' &&
+            path.value.expression.callee.object.callee.property.name === 'sendKeys'
+        ))
+        .replaceWith((path) => {
+            const param = path.value.expression.callee.object.arguments[0]
+            console.log(param.object.object.name);
+            if (!param.object.object || param.object.object.name !== 'protractor' || param.object.property.name !== 'Key') {
+                throw new TransformError('' +
+                    'Expected "proctractor.Key.XXX" as argument to the sendKeys command. ' +
+                    'Please raise an issue in the codemod repository: https://github.com/webdriverio/codemod/issues/new',
+                    path.value,
+                    file
+                )
+            }
+
+            const key = param.property.name.slice(0, 1).toUpperCase() + camelCase(param.property.name).slice(1)
+            return j.expressionStatement(
+                j.callExpression(
+                    j.memberExpression(
+                        j.identifier('browser'),
+                        j.identifier('keys')
+                    ),
+                    [
+                        j.literal(key)
+                    ]
+                )
             )
         })
 
