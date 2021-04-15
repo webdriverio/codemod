@@ -81,6 +81,22 @@ module.exports = function transformer(file, api) {
         })
 
     /**
+     * remove all protractor import declarations
+     */
+    root.find(j.ImportDeclaration)
+        .filter((path) => path.value.source.value === 'protractor')
+        .remove()
+    root.find(j.VariableDeclaration)
+        .filter((path) => (
+            path.value.declarations.length &&
+            path.value.declarations[0].init &&
+            path.value.declarations[0].init.arguments &&
+            path.value.declarations[0].init.arguments[0] &&
+            path.value.declarations[0].init.arguments[0].value === 'protractor'
+        ))
+        .remove()
+
+    /**
      * remove all `require('ts-node')` and `jasmine.getEnv()`
      */
     root.find(j.ExpressionStatement)

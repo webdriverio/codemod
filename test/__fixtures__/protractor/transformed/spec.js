@@ -20,7 +20,7 @@ const url = browser.getUrl()
 const url2 = browser.getUrl()
 browser.execute(function() {console.error('error from test'); });
 
-;(async () => {
+(async () => {
     let handles = await browser.getWindowHandles();
     browser.switchToWindow(handles[handles.length - 1])
     const a = 1 + 1

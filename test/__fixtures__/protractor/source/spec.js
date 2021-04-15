@@ -1,3 +1,6 @@
+import { browser, element, by, protractor } from "protractor";
+const { browserB, elementB, byB, protractorB } = require('protractor')
+
 browser.get(env.url + '/ng1/calculator', 12345);
 element(by.model('first')).sendKeys(4);
 element(by.id('gobutton')).click();
