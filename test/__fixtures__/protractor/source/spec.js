@@ -57,3 +57,5 @@ browser.wait(async () => {
 browser.wait(async () => {
     return await this.pageLoaded();
 }, 12345)
+
+browser.manage().logs().get(logging.Type.BROWSER);

@@ -59,3 +59,5 @@ browser.waitUntil(async () => {
 }, {
     timeout: 12345
 })
+
+browser.getLogs("browser");

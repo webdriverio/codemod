@@ -212,7 +212,6 @@ module.exports = function transformer(file, api) {
         ))
         .replaceWith((path) => {
             const param = path.value.callee.object.arguments[0]
-            console.log(param.object.object.name);
             if (!param.object.object || param.object.object.name !== 'protractor' || param.object.property.name !== 'Key') {
                 throw new TransformError('' +
                     'Expected "proctractor.Key.XXX" as argument to the sendKeys command. ' +
@@ -327,6 +326,32 @@ module.exports = function transformer(file, api) {
                     j.identifier(replaceCommands(method))
                 ),
                 args
+            )
+        })
+
+    /**
+     * transform `browser.manage().logs().get(...)`
+     */
+    root.find(j.CallExpression)
+        .filter((path) => (
+            path.value.callee &&
+            path.value.callee.property &&
+            path.value.callee.property.name === 'get' &&
+            path.value.callee.object &&
+            path.value.callee.object.callee &&
+            path.value.callee.object.callee.property &&
+            path.value.callee.object.callee.property.name === 'logs'
+        ))
+        .replaceWith((path) => {
+            let logType = path.value.arguments[0].property.name.toLowerCase()
+            return j.callExpression(
+                j.memberExpression(
+                    j.identifier('browser'),
+                    j.identifier('getLogs')
+                ),
+                [
+                    j.literal(logType)
+                ]
             )
         })
 
