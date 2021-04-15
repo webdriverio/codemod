@@ -8,6 +8,7 @@ $('body').allowAnimations(false);
 
 (async () => {
     await $('body').allowAnimations(false);
+    await this.deleteButtons.get(0).click();
 })();
 
 // Using getDriver to find the parent web element to find the cat li

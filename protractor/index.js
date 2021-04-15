@@ -367,6 +367,25 @@ module.exports = function transformer(file, api) {
                     path.value.callee.object,
                     j.identifier('length')
                 )
+            } else if (
+                /**
+                 * check if element was called with get, e.g.
+                 * this.deleteButtons.get(0).click();
+                 */
+                path.value.callee.object.callee &&
+                path.value.callee.object.callee.property &&
+                path.value.callee.object.callee.property.name === 'get'
+            ) {
+                return j.callExpression(
+                    j.memberExpression(
+                        j.memberExpression(
+                            path.value.callee.object.callee.object,
+                            path.value.callee.object.arguments[0]
+                        ),
+                        j.identifier(replaceCommands(command))
+                    ),
+                    path.value.arguments
+                )
             }
 
             /**

@@ -39,7 +39,17 @@ exports.ELEMENT_COMMANDS = [
     'submit',
     'getId',
     'clone',
-    'count'
+    'count',
+    'click',
+    'getTagName',
+    'getAttribute',
+    'getText',
+    'getSize',
+    'getLocation',
+    'isEnabled',
+    'isSelected',
+    'isDisplayed',
+    'takeScreenshot'
 ]
 exports.COMMANDS_TO_REMOVE = ['allowAnimations']
 exports.UNSUPPORTED_COMMANDS = [

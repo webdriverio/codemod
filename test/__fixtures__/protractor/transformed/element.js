@@ -3,7 +3,9 @@ $('.parent');
 browser.$('.parent');
 browser.$('.parent');
 
-(async () => {})();
+(async () => {
+    await this.deleteButtons[0].click();
+})();
 
 // Using getDriver to find the parent web element to find the cat li
 var liDog = $('.dog');
