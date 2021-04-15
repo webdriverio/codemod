@@ -209,6 +209,11 @@ function parseConfigProperties (property) {
             this.identifier(REPLACE_CONFIG_KEYS[name]),
             property.value
         )
+    } else if (name === 'framework' && value === 'jasmine2') {
+        return this.objectProperty(
+            this.identifier('framework'),
+            this.literal('jasmine')
+        )
     } else if (name === 'suites') {
         return this.objectProperty(
             this.identifier('suites'),
