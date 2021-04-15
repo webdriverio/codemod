@@ -5,7 +5,6 @@ exports.UNSUPPORTED_SELECTOR_STRATEGIES = {
     binding: format(UNSUPPORTED_SELECTOR_STRATEGY_ERROR, 'by.binding'),
     deepCss: 'WebdriverIO does not natively support deep CSS queries yet (https://github.com/webdriverio/webdriverio/issues/6709). We advise to use this plugin: https://github.com/Georgegriff/query-selector-shadow-dom.',
     exactRepeater: format(UNSUPPORTED_SELECTOR_STRATEGY_ERROR, 'by.exactRepeater'),
-    repeater: format(UNSUPPORTED_SELECTOR_STRATEGY_ERROR, 'by.repeater'),
     exactBinding: format(UNSUPPORTED_SELECTOR_STRATEGY_ERROR, 'by.exactBinding')
 }
 
@@ -18,6 +17,7 @@ exports.SUPPORTED_SELECTORS = [
     'cssContainingText',
     'xpath',
     'tagName',
+    'repeater',
     'partialLinkText',
     'name',
     'js',

@@ -62,3 +62,6 @@ browser.wait(async () => {
 }, 12345)
 
 browser.manage().logs().get(logging.Type.BROWSER);
+
+var row = element.all(by.repeater('dataRow in displayedCollection')).get(1);
+var cells = row.all(by.tagName('td'));

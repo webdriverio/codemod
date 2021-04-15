@@ -47,6 +47,8 @@ function getSelectorArgument (j, path, callExpr, file) {
         return [j.literal(`#${arg.value}`)]
     } else if (bySelector === 'model') {
         return [j.literal(`*[ng-model="${arg.value}"]`)]
+    } else if (bySelector === 'repeater') {
+        return [j.literal(`*[ng-repeat="${arg.value}"]`)]
     } else if (bySelector === 'css') {
         return [...callExpr.arguments]
     } else if (bySelector === 'cssContainingText') {

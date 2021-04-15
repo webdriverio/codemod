@@ -204,26 +204,51 @@ module.exports = function transformer(file, api) {
         .filter((path) => (
             path.value.callee &&
             path.value.callee.type === 'MemberExpression' &&
-            path.value.callee.object.name === 'element' &&
             path.value.callee.property.name === 'all' &&
             matchesSelectorExpression(path)
         ))
         .replaceWith((path) => {
+            const scope = path.value.callee.object
             const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
+            const hasCustomScope = scope.name !== 'element'
             if (isCustomStrategy) {
                 return j.callExpression(
-                j.memberExpression(
-                    j.identifier('browser'),
-                    j.identifier('custom$$')
-                ),
-                getSelectorArgument(j, path, path.value.arguments[0], file)
+                    hasCustomScope
+                        ? scope
+                        : j.memberExpression(
+                            j.identifier('browser'),
+                            j.identifier('custom$$')
+                        ),
+                    getSelectorArgument(j, path, path.value.arguments[0], file)
                 )
             }
             return j.callExpression(
-                j.identifier('$$'),
+                hasCustomScope
+                    ? j.memberExpression(
+                        scope,
+                        j.identifier('$$')
+                    )
+                    : j.identifier('$$'),
                 getSelectorArgument(j, path, path.value.arguments[0], file)
             )
         })
+
+    /**
+     * transform:
+     * element.all(...).get(0)
+     * $$('...')[0]
+     */
+    root.find(j.CallExpression)
+        .filter((path) => (
+            path.value.callee.object &&
+            path.value.callee.object.callee &&
+            path.value.callee.object.callee.name === '$$' &&
+            path.value.callee.property.name === 'get'
+        ))
+        .replaceWith((path) => j.memberExpression(
+            path.value.callee.object,
+            path.value.arguments[0]
+        ))
 
     /**
      * transform

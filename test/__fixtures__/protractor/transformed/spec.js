@@ -61,3 +61,6 @@ browser.waitUntil(async () => {
 })
 
 browser.getLogs("browser");
+
+var row = $$("*[ng-repeat=\"dataRow in displayedCollection\"]")[1];
+var cells = row.$$('td');
