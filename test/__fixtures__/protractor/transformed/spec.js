@@ -34,6 +34,7 @@ browser.execute(function() {console.error('error from test'); });
     const config = await browser.config
     let config = await browser.config;
     console.log(config);
+    const windowLocation = await browser.getWindowRect()
 })
 
 browser.switchToFrame('composeWidget');
@@ -64,3 +65,8 @@ browser.getLogs("browser");
 
 var row = $$("*[ng-repeat=\"dataRow in displayedCollection\"]")[1];
 var cells = row.$$('td');
+
+var width = 800;
+var height = 600;
+browser.setWindowRect(0, 0, width, height);
+browser.deleteCookies();

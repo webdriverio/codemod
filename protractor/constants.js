@@ -49,7 +49,9 @@ exports.ELEMENT_COMMANDS = [
     'isEnabled',
     'isSelected',
     'isDisplayed',
-    'takeScreenshot'
+    'takeScreenshot',
+    'getPosition',
+    'setSize'
 ]
 exports.COMMANDS_TO_REMOVE = ['allowAnimations']
 exports.UNSUPPORTED_COMMANDS = [
@@ -157,7 +159,10 @@ exports.REPLACE_TIMEOUTS = {
 exports.REPLACE_WINDOW_COMMANDS = {
     fullscreen: 'fullscreenWindow',
     maximize: 'maximizeWindow',
-    minimize: 'minimizeWindow'
+    minimize: 'minimizeWindow',
+    getPosition: 'getWindowRect',
+    setSize: 'setWindowRect',
+    deleteAllCookies: 'deleteCookies'
 }
 
 exports.UNSUPPORTED_CONFIG_OPTION_ERROR = '' +

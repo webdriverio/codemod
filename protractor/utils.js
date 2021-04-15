@@ -137,6 +137,10 @@ function replaceCommands (prtrctrCommand) {
             return 'waitUntil'
         case 'close':
             return 'closeWindow'
+        case 'getPosition':
+            return 'getWindowRect'
+        case 'setSize':
+            return 'setWindowRect'
         case 'restart':
         case 'restartSync':
             return 'reloadSession'

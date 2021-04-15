@@ -40,6 +40,7 @@ browser.executeScript(function() {console.error('error from test'); });
     await browser.getProcessedConfig().then((config) => {
         console.log(config);
     })
+    const windowLocation = await browser.manage().window().getPosition()
 })
 
 browser.switchTo().frame('composeWidget');
@@ -65,3 +66,8 @@ browser.manage().logs().get(logging.Type.BROWSER);
 
 var row = element.all(by.repeater('dataRow in displayedCollection')).get(1);
 var cells = row.all(by.tagName('td'));
+
+var width = 800;
+var height = 600;
+browser.driver.manage().window().setSize(width, height);
+browser.manage().deleteAllCookies();

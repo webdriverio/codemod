@@ -393,13 +393,12 @@ module.exports = function transformer(file, api) {
      */
     root.find(j.CallExpression)
         .filter((path) => (
-            path.value.callee &&
             path.value.callee.property &&
             ['get', ...Object.keys(REPLACE_TIMEOUTS), ...Object.keys(REPLACE_WINDOW_COMMANDS)].includes(path.value.callee.property.name) &&
             path.value.callee.object &&
             path.value.callee.object.callee &&
             path.value.callee.object.callee.property &&
-            ['logs', 'timeouts', 'window'].includes(path.value.callee.object.callee.property.name)
+            ['logs', 'timeouts', 'window', 'manage'].includes(path.value.callee.object.callee.property.name)
         ))
         .replaceWith((path) => {
             const scope = path.value.callee.object.callee.property.name
@@ -433,6 +432,25 @@ module.exports = function transformer(file, api) {
                     ]
                 )
             } else if (scope === 'window') {
+                const args = []
+
+                if (command === 'setSize') {
+                    args.push(
+                        j.literal(0),
+                        j.literal(0),
+                        path.value.arguments[0],
+                        path.value.arguments[1]
+                    )
+                }
+
+                return j.callExpression(
+                    j.memberExpression(
+                        j.identifier('browser'),
+                        j.identifier(REPLACE_WINDOW_COMMANDS[command])
+                    ),
+                    args
+                )
+            } else if (scope === 'manage') {
                 return j.callExpression(
                     j.memberExpression(
                         j.identifier('browser'),
