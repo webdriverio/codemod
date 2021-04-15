@@ -9,7 +9,9 @@ const {
     COMMANDS_TO_REMOVE,
     UNSUPPORTED_COMMAND_ADVICE,
     UNSUPPORTED_COMMAND_ERROR,
-    INCOMPATIBLE_COMMAND_ERROR
+    INCOMPATIBLE_COMMAND_ERROR,
+    REPLACE_WINDOW_COMMANDS,
+    REPLACE_TIMEOUTS
 } = require('./constants')
 const {
     isCustomStrategy,
@@ -120,6 +122,19 @@ module.exports = function transformer(file, api) {
             )
             return (expr && expr.property && COMMANDS_TO_REMOVE.includes(expr.property.name))
         })
+        .remove()
+
+    /**
+     * remove unsupported assignments like
+     * browser.ignoreSynchronization = true;
+     */
+    root.find(j.ExpressionStatement)
+        .filter((path) => (
+            path.value.expression.left &&
+            path.value.expression.left.object &&
+            path.value.expression.left.object.name === 'browser' &&
+            path.value.expression.left.property.name === 'ignoreSynchronization'
+        ))
         .remove()
 
     /**
@@ -330,29 +345,62 @@ module.exports = function transformer(file, api) {
         })
 
     /**
-     * transform `browser.manage().logs().get(...)`
+     * transform
+     * - `browser.manage().logs().get(...)`
+     * - `browser.driver.manage().timeouts().implicitlyWait(15000);`
+     * - `browser.driver.manage().window().maximize();`
      */
     root.find(j.CallExpression)
         .filter((path) => (
             path.value.callee &&
             path.value.callee.property &&
-            path.value.callee.property.name === 'get' &&
+            ['get', ...Object.keys(REPLACE_TIMEOUTS), ...Object.keys(REPLACE_WINDOW_COMMANDS)].includes(path.value.callee.property.name) &&
             path.value.callee.object &&
             path.value.callee.object.callee &&
             path.value.callee.object.callee.property &&
-            path.value.callee.object.callee.property.name === 'logs'
+            ['logs', 'timeouts', 'window'].includes(path.value.callee.object.callee.property.name)
         ))
         .replaceWith((path) => {
-            let logType = path.value.arguments[0].property.name.toLowerCase()
-            return j.callExpression(
-                j.memberExpression(
-                    j.identifier('browser'),
-                    j.identifier('getLogs')
-                ),
-                [
-                    j.literal(logType)
-                ]
-            )
+            const scope = path.value.callee.object.callee.property.name
+            const command = path.value.callee.property.name
+
+            if (scope === 'logs') {
+                let logType = path.value.arguments[0].property.name.toLowerCase()
+                return j.callExpression(
+                    j.memberExpression(
+                        j.identifier('browser'),
+                        j.identifier('getLogs')
+                    ),
+                    [
+                        j.literal(logType)
+                    ]
+                )
+            } else if (scope === 'timeouts') {
+                const timeout = path.value.arguments[0].value
+                return j.callExpression(
+                    j.memberExpression(
+                        j.identifier('browser'),
+                        j.identifier('setTimeout')
+                    ),
+                    [
+                        j.objectExpression([
+                            j.objectProperty(
+                                j.identifier(REPLACE_TIMEOUTS[command]),
+                                j.literal(timeout)
+                            )
+                        ])
+                    ]
+                )
+            } else if (scope === 'window') {
+                return j.callExpression(
+                    j.memberExpression(
+                        j.identifier('browser'),
+                        j.identifier(REPLACE_WINDOW_COMMANDS[command])
+                    ),
+                    []
+                )
+            }
+
         })
 
     /**

@@ -47,6 +47,14 @@ exports.config = {
             project: require('path').join(__dirname, './tsconfig.e2e.json')
         });
         jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
+
+        browser.driver.manage().timeouts().implicitlyWait(15000);
+        browser.driver.manage().timeouts().pageLoadTimeout(15000);
+        browser.driver.manage().timeouts().setScriptTimeout(15000);
+        browser.driver.manage().window().maximize();
+        browser.driver.manage().window().minimize();
+        browser.driver.manage().window().fullscreen();
+        browser.ignoreSynchronization = true;
     },
     onComplete: () => console.log('onComplete hook'),
     onCleanUp: () => console.log('onCleanUp hook'),

@@ -54,12 +54,12 @@ async function runTest (framework, tests) {
             continue
         }
 
+        const sourceFileContent = (await fs.promises.readFile(srcFile)).toString()
         if (!desired) {
-            throw new Error(`File ${srcFile} was suppose to fail but transformed successfully`)
+            throw new Error(`File ${srcFile} was suppose to fail but transformed successfully:\n${sourceFileContent}`)
         }
 
         const fixtureFile = path.join(__dirname, '__fixtures__', framework, 'transformed', desired)
-        const sourceFileContent = (await fs.promises.readFile(srcFile)).toString()
         const desiredFileContent = (await fs.promises.readFile(fixtureFile)).toString()
 
         expect(sourceFileContent).toEqual(desiredFileContent)

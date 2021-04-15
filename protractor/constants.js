@@ -148,6 +148,18 @@ exports.REPLACE_CONFIG_KEYS = {
     jasmineNodeOpts: 'jasmineOpts'
 }
 
+exports.REPLACE_TIMEOUTS = {
+    implicitlyWait: 'implicit',
+    pageLoadTimeout: 'pageLoad',
+    setScriptTimeout: 'script'
+}
+
+exports.REPLACE_WINDOW_COMMANDS = {
+    fullscreen: 'fullscreenWindow',
+    maximize: 'maximizeWindow',
+    minimize: 'minimizeWindow'
+}
+
 exports.UNSUPPORTED_CONFIG_OPTION_ERROR = '' +
     'The option "%s" is not supported in WebdriverIO. We advise to use ' +
     '%s instead. For more information on this configuration, see %s.'

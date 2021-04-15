@@ -59,6 +59,19 @@ exports.config = {
 
     before: () => {
         console.log('onPrepare hook')
+
+        browser.setTimeout({
+            implicit: 15000
+        });
+        browser.setTimeout({
+            pageLoad: 15000
+        });
+        browser.setTimeout({
+            script: 15000
+        });
+        browser.maximizeWindow();
+        browser.minimizeWindow();
+        browser.fullscreenWindow();
     },
 
     after: () => console.log('onComplete hook'),
