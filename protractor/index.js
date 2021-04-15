@@ -471,13 +471,13 @@ module.exports = function transformer(file, api) {
      */
     root.find(j.MemberExpression)
         .filter((path) => (
-            path.value.property.name === 'frame' &&
+            ['frame', 'window'].includes(path.value.property.name) &&
             path.value.object.callee &&
             path.value.object.callee.property.name === 'switchTo'
         ))
         .replaceWith((path) => j.memberExpression(
             j.identifier('browser'),
-            j.identifier('switchToFrame')
+            j.identifier(replaceCommands(path.value.property.name))
         ))
 
     /**

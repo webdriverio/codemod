@@ -22,14 +22,14 @@ browser.execute(function() {console.error('error from test'); });
 
 ;(async () => {
     let handles = await browser.getWindowHandles();
-    browser.switchTo().window(handles[handles.length - 1])
+    browser.switchToWindow(handles[handles.length - 1])
     const a = 1 + 1
     console.log('test');
     const b = 2 + 2
     let handles = await browser.getWindowHandles();
     browser.closeWindow();
     // the parent should be 2 less than the length of all found window handlers
-    browser.switchTo().window(handles.length - 2);
+    browser.switchToWindow(handles[handles.length - 2]);
 
     const config = await browser.config
     let config = await browser.config;

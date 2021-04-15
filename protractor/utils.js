@@ -121,6 +121,10 @@ function replaceCommands (prtrctrCommand) {
             return 'url'
         case 'sleep':
             return 'pause'
+        case 'frame':
+            return 'switchToFrame'
+        case 'window':
+            return 'switchToWindow'
         case 'enterRepl':
         case 'explore':
             return 'debug'

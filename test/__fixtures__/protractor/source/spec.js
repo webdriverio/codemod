@@ -30,7 +30,7 @@ browser.executeScript(function() {console.error('error from test'); });
     await browser.getAllWindowHandles().then(handles => {
         browser.close();
         // the parent should be 2 less than the length of all found window handlers
-        browser.switchTo().window(handles.length - 2);
+        browser.switchTo().window(handles[handles.length - 2]);
     });
 
     const config = await browser.getProcessedConfig()
