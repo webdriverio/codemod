@@ -56,7 +56,11 @@ exports.config = {
 
     maxInstances: 321,
     onPrepare: () => console.log('beforeLaunch hook'),
-    before: () => console.log('onPrepare hook'),
+
+    before: () => {
+        console.log('onPrepare hook')
+    },
+
     after: () => console.log('onComplete hook'),
     afterSession: () => console.log('onCleanUp hook'),
     onComplete: () => console.log('afterLaunch hook'),

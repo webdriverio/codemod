@@ -41,7 +41,13 @@ exports.config = {
     },
     maxSessions: 321,
     beforeLaunch: () => console.log('beforeLaunch hook'),
-    onPrepare: () => console.log('onPrepare hook'),
+    onPrepare: () => {
+        console.log('onPrepare hook')
+        require('ts-node').register({
+            project: require('path').join(__dirname, './tsconfig.e2e.json')
+        });
+        jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
+    },
     onComplete: () => console.log('onComplete hook'),
     onCleanUp: () => console.log('onCleanUp hook'),
     afterLaunch: () => console.log('afterLaunch hook'),

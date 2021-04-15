@@ -79,6 +79,34 @@ module.exports = function transformer(file, api) {
         })
 
     /**
+     * remove all `require('ts-node')` and `jasmine.getEnv()`
+     */
+    root.find(j.ExpressionStatement)
+        .filter((path) => {
+            if (
+                !path.value.expression.callee ||
+                !path.value.expression.callee.object
+            ) {
+                return false
+            }
+            const expr = path.value.expression.callee.object
+            return (
+                (
+                    expr.callee && expr.callee.name === 'require' &&
+                    expr.arguments && expr.arguments[0].value === 'ts-node'
+                ) ||
+                (
+                    expr.callee &&
+                    expr.callee.object &&
+                    expr.callee.object.name === 'jasmine' &&
+                    expr.callee.property.name === 'getEnv'
+                )
+            )
+        })
+        .remove()
+
+
+    /**
      * remove command statements that aren't useful in WebdriverIO world
      */
     root.find(j.ExpressionStatement)
