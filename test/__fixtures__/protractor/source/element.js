@@ -31,3 +31,6 @@ expect(element(by.linkText('Google')).getTagName()).toBe('a');
 var allOptions = element.all(by.options('c for c in colors'));
 element(by.partialButtonText('Save'));
 element(by.buttonText('Save'));
+
+let list = element.all(by.css('.items li'));
+expect(list.count()).toBe(3);

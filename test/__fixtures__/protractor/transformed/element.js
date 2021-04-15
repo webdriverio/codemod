@@ -26,3 +26,6 @@ expect($("=Google").getTagName()).toBe('a');
 var allOptions = $$("select[ng-options=\"c for c in colors\"] option");
 $("button*=Save");
 $("button=Save");
+
+let list = $$('.items li');
+expect(list.length).toBe(3);

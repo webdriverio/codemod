@@ -350,17 +350,22 @@ module.exports = function transformer(file, api) {
                  * to `$('#abc').$('#def')`
                  */
                 return j.callExpression(
-                j.memberExpression(
-                    j.callExpression(
-                        j.memberExpression(
-                            path.value.callee.object,
-                            j.identifier('$')
+                    j.memberExpression(
+                        j.callExpression(
+                            j.memberExpression(
+                                path.value.callee.object,
+                                j.identifier('$')
+                            ),
+                            getSelectorArgument(j, path, path.value.arguments[0], file)
                         ),
-                        getSelectorArgument(j, path, path.value.arguments[0], file)
+                        j.identifier('isExisting')
                     ),
-                    j.identifier('isExisting')
-                ),
-                []
+                    []
+                )
+            } else if (command === 'count') {
+                return j.memberExpression(
+                    path.value.callee.object,
+                    j.identifier('length')
                 )
             }
 

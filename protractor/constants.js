@@ -38,7 +38,8 @@ exports.ELEMENT_COMMANDS = [
     'clear',
     'submit',
     'getId',
-    'clone'
+    'clone',
+    'count'
 ]
 exports.COMMANDS_TO_REMOVE = ['allowAnimations']
 exports.UNSUPPORTED_COMMANDS = [
