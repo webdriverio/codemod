@@ -88,3 +88,7 @@ var width = 800;
 var height = 600;
 browser.driver.manage().window().setSize(width, height);
 browser.manage().deleteAllCookies();
+
+var titleIsNotFoo = protractor.ExpectedConditions.not(
+    protractor.ExpectedConditions.titleIs('Foo')
+);

@@ -87,3 +87,7 @@ var width = 800;
 var height = 600;
 browser.setWindowRect(0, 0, width, height);
 browser.deleteCookies();
+
+var titleIsNotFoo = require("wdio-wait-for").not(
+    require("wdio-wait-for").titleIs('Foo')
+);

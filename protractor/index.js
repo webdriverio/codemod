@@ -670,6 +670,12 @@ module.exports = function transformer(file, api) {
      * into
      * - const EC = require('wdio-wait-for')
      */
+    const wdioWaitForImport = j.callExpression(
+        j.identifier('require'),
+        [
+            j.literal('wdio-wait-for')
+        ]
+    )
     root.find(j.VariableDeclaration)
         .filter((path) => (
             path.value.declarations[0] &&
@@ -683,14 +689,23 @@ module.exports = function transformer(file, api) {
             [
                 j.variableDeclarator(
                     path.value.declarations[0].id,
-                    j.callExpression(
-                        j.identifier('require'),
-                        [
-                            j.literal('wdio-wait-for')
-                        ]
-                    )
+                    wdioWaitForImport
                 )
             ]
+        ))
+
+    /**
+     * transform expected conditions not put into a var
+     */
+    root.find(j.MemberExpression)
+        .filter((path) => (
+            path.value.object.object &&
+            path.value.object.object.name === 'protractor' &&
+            path.value.object.property.name === 'ExpectedConditions'
+        ))
+        .replaceWith((path) => j.memberExpression(
+            wdioWaitForImport,
+            path.value.property
         ))
 
     /**
