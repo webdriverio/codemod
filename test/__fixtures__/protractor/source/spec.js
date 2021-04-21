@@ -24,6 +24,23 @@ const url2 = browser.getLocationAbsUrl()
 browser.executeScript(function() {console.error('error from test'); });
 
 ;(async () => {
+    const EC = protractor.ExpectedConditions;
+    var button = $('#xyz');
+    var isClickable = EC.elementToBeClickable(button);
+
+    // You can define your own expected condition, which is a function that
+    // takes no parameter and evaluates to a promise of a boolean.
+    var urlChanged = function() {
+        return browser.getCurrentUrl().then(function(url) {
+            return url === 'http://www.angularjs.org';
+        });
+    };
+
+    // You can customize the conditions with EC.and, EC.or, and EC.not.
+    // Here's a condition to wait for url to change, $('abc') element to contain
+    // text 'bar', and button becomes clickable.
+    var condition = EC.and(urlChanged, EC.textToBePresentInElement($('abc'), 'bar'), isClickable);
+
     await browser.getAllWindowHandles().then(handles => {
         browser.switchTo().window(handles[handles.length - 1])
         const a = 1 + 1
