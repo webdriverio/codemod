@@ -44,11 +44,34 @@ function getSelectorArgument (j, path, callExpr, file) {
             file
         )
     } else if (bySelector === 'id') {
-        return [j.literal(`#${arg.value}`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`#${arg.value}`)
+            : j.templateLiteral([
+                j.templateElement({ raw: '#', cooked: '#' }, false)
+            ], [
+                arg
+            ])
+        ]
     } else if (bySelector === 'model') {
-        return [j.literal(`*[ng-model="${arg.value}"]`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`*[ng-model="${arg.value}"]`)
+            : j.templateLiteral([
+                j.templateElement({ raw: '*[ng-model="', cooked: '*[ng-model="' }, false),
+                j.templateElement({ raw: '"]', cooked: '"]' }, true),
+            ], [
+                arg
+            ])
+        ]
     } else if (bySelector === 'repeater') {
-        return [j.literal(`*[ng-repeat="${arg.value}"]`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`*[ng-repeat="${arg.value}"]`)
+            : j.templateLiteral([
+                j.templateElement({ raw: '*[ng-repeat="', cooked: '*[ng-repeat="' }, false),
+                j.templateElement({ raw: '"]', cooked: '"]' }, true),
+            ], [
+                arg
+            ])
+        ]
     } else if (bySelector === 'css') {
         return [...callExpr.arguments]
     } else if (bySelector === 'cssContainingText') {
@@ -72,19 +95,56 @@ function getSelectorArgument (j, path, callExpr, file) {
     } else if (bySelector === 'xpath' || bySelector === 'tagName' || bySelector === 'js') {
         return [arg]
     } else if (bySelector === 'linkText') {
-        return [j.literal(`=${arg.value}`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`=${arg.value}`)
+            : j.templateLiteral([
+                j.templateElement({ raw: '=', cooked: '=' }, false)
+            ], [arg])
+        ]
     } else if (bySelector === 'partialLinkText') {
-        return [j.literal(`*=${arg.value}`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`*=${arg.value}`)
+            : j.templateLiteral([
+                j.templateElement({ raw: '*=', cooked: '*=' }, false)
+            ], [arg])
+        ]
     } else if (bySelector === 'name') {
-        return [j.literal(`*[name="${arg.value}"]`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`*[name="${arg.value}"]`)
+            : j.templateLiteral([
+                j.templateElement({ raw: '*[name="', cooked: '*[name="' }, false),
+                j.templateElement({ raw: '"]', cooked: '"]' }, true)
+            ], [arg])
+        ]
     } else if (bySelector === 'className') {
-        return [j.literal(`.${arg.value}`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`.${arg.value}`)
+            : j.templateLiteral([
+                j.templateElement({ raw: '.', cooked: '.' }, false)
+            ], [arg])
+        ]
     } else if (bySelector === 'options') {
-        return [j.literal(`select[ng-options="${arg.value}"] option`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`select[ng-options="${arg.value}"] option`)
+            : j.templateLiteral([
+                j.templateElement({ raw: 'select[ng-options="', cooked: 'select[ng-options="' }, false),
+                j.templateElement({ raw: '"] option', cooked: '"] option' }, true)
+            ], [arg])
+        ]
     } else if (bySelector === 'buttonText') {
-        return [j.literal(`button=${arg.value}`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`button=${arg.value}`)
+            : j.templateLiteral([
+                j.templateElement({ raw: 'button=', cooked: 'button=' }, false)
+            ], [arg])
+        ]
     } else if (bySelector === 'partialButtonText') {
-        return [j.literal(`button*=${arg.value}`)]
+        return [arg.type === 'Literal'
+            ? j.literal(`button*=${arg.value}`)
+            : j.templateLiteral([
+                j.templateElement({ raw: 'button*=', cooked: 'button*=' }, false)
+            ], [arg])
+        ]
     }
 
 
