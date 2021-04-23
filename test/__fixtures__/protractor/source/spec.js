@@ -92,3 +92,13 @@ browser.manage().deleteAllCookies();
 var titleIsNotFoo = protractor.ExpectedConditions.not(
     protractor.ExpectedConditions.titleIs('Foo')
 );
+
+browser.manage().window().getSize();
+browser.manage().addCookie({ name: "version", value: "v1" });
+browser.manage().deleteCookie("enableMock");
+browser.manage().getCookie("name");
+browser.manage().getCookies();
+browser.navigate().back();
+browser.navigate().forward();
+browser.navigate().refresh();
+browser.navigate().to("https://webdriver.io");

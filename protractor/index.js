@@ -11,7 +11,9 @@ const {
     UNSUPPORTED_COMMAND_ERROR,
     INCOMPATIBLE_COMMAND_ERROR,
     REPLACE_WINDOW_COMMANDS,
-    REPLACE_TIMEOUTS
+    REPLACE_TIMEOUTS,
+    REPLACE_MANAGE_COMMANDS,
+    REPLACE_NAVIGATE_COMMANDS
 } = require('./constants')
 const {
     isCustomStrategy,
@@ -394,11 +396,17 @@ module.exports = function transformer(file, api) {
     root.find(j.CallExpression)
         .filter((path) => (
             path.value.callee.property &&
-            ['get', ...Object.keys(REPLACE_TIMEOUTS), ...Object.keys(REPLACE_WINDOW_COMMANDS)].includes(path.value.callee.property.name) &&
+            [
+                'get',
+                 ...Object.keys(REPLACE_TIMEOUTS),
+                 ...Object.keys(REPLACE_WINDOW_COMMANDS),
+                 ...Object.keys(REPLACE_MANAGE_COMMANDS),
+                 ...Object.keys(REPLACE_NAVIGATE_COMMANDS)
+            ].includes(path.value.callee.property.name) &&
             path.value.callee.object &&
             path.value.callee.object.callee &&
             path.value.callee.object.callee.property &&
-            ['logs', 'timeouts', 'window', 'manage'].includes(path.value.callee.object.callee.property.name)
+            ['logs', 'timeouts', 'window', 'manage', 'navigate'].includes(path.value.callee.object.callee.property.name)
         ))
         .replaceWith((path) => {
             const scope = path.value.callee.object.callee.property.name
@@ -451,12 +459,37 @@ module.exports = function transformer(file, api) {
                     args
                 )
             } else if (scope === 'manage') {
+                const args = []
+
+                if (command === 'addCookie') {
+                    args.push(path.value.arguments[0])
+                } else if (command === 'deleteCookie' || command === 'getCookie') {
+                    const cookieValue = path.value.arguments[0].value;
+
+                    args.push(j.literal(cookieValue));
+                }
+
                 return j.callExpression(
                     j.memberExpression(
                         j.identifier('browser'),
-                        j.identifier(REPLACE_WINDOW_COMMANDS[command])
+                        j.identifier(REPLACE_MANAGE_COMMANDS[command])
                     ),
-                    []
+                    args
+                )
+            } else if (scope === 'navigate') {
+                const args = [];
+
+                if (command === 'to') {
+                    const urlValue = path.value.arguments[0].value;
+
+                    args.push(j.literal(urlValue));
+                }
+                return j.callExpression(
+                    j.memberExpression(
+                        j.identifier('browser'),
+                        j.identifier(REPLACE_NAVIGATE_COMMANDS[command])
+                    ),
+                    args
                 )
             }
 

@@ -91,3 +91,13 @@ browser.deleteCookies();
 var titleIsNotFoo = require("wdio-wait-for").not(
     require("wdio-wait-for").titleIs('Foo')
 );
+
+browser.getWindowRect();
+browser.addCookie({ name: "version", value: "v1" });
+browser.deleteCookie("enableMock");
+browser.getCookie("name");
+browser.getCookies();
+browser.back();
+browser.forward();
+browser.refresh();
+browser.url("https://webdriver.io");
