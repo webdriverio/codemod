@@ -162,7 +162,22 @@ exports.REPLACE_WINDOW_COMMANDS = {
     minimize: 'minimizeWindow',
     getPosition: 'getWindowRect',
     setSize: 'setWindowRect',
-    deleteAllCookies: 'deleteCookies'
+    getSize: 'getWindowRect',
+}
+
+exports.REPLACE_MANAGE_COMMANDS = {
+    deleteAllCookies: 'deleteCookies',
+    deleteCookie: 'deleteCookie',
+    addCookie: 'addCookie',
+    getCookie: 'getCookie',
+    getCookies: 'getCookies'
+}
+
+exports.REPLACE_NAVIGATE_COMMANDS = {
+    forward: 'forward',
+    back: 'back',
+    refresh: 'refresh',
+    to: 'url'
 }
 
 exports.UNSUPPORTED_CONFIG_OPTION_ERROR = '' +
