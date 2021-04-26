@@ -23,6 +23,9 @@ const frameworkTests = {
         ['./failing_submit.js'],
         ['./failing_clone.js'],
         ['./failing_anythingProtractor.js']
+    ],
+    v7: [
+        ['./spec.js', './spec.js']
     ]
 }
 
@@ -63,10 +66,15 @@ async function runTest (framework, tests) {
 
         expect(sourceFileContent).toEqual(desiredFileContent)
     }
+
+    shell.rm('-r', path.join(__dirname, 'testdata'))
 }
 
 ;(async () => {
-    for (const [framework, tests] of Object.entries(frameworkTests)) {
+    const testsToRun = process.argv.length === 3
+        ? { [process.argv[2]]: frameworkTests[process.argv[2]] }
+        : frameworkTests
+    for (const [framework, tests] of Object.entries(testsToRun)) {
         console.log('========================')
         console.log(`Run tests for ${framework}`)
         console.log('========================\n')
@@ -76,8 +84,6 @@ async function runTest (framework, tests) {
     () => console.log('Tests passed ✅'),
     (err) => (error = err)
 ).then(() => {
-    shell.rm('-r', path.join(__dirname, 'testdata'))
-
     if (error) {
         delete error.matcherResult
         console.warn(error)
