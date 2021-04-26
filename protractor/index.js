@@ -37,66 +37,64 @@ module.exports = function transformer(file, api) {
      * }
      * ```
      */
-    root.find(j.ExpressionStatement)
-        .filter((path) => (
-            path.value.expression.type === 'AssignmentExpression' &&
-            path.value.expression.left.object.name === 'exports' &&
-            path.value.expression.left.property.name === 'config' &&
-            path.value.expression.right.type === 'ObjectExpression'
-        ))
-        .replaceWith((path) => {
-            const props = path.value.expression.right.properties
-            let hasKobitonUserProp = props.find(({ key }) => (key.name || key.value) === 'kobitonUser')
-            let hasKobitonKeyProp = props.find(({ key }) => (key.name || key.value) === 'kobitonKey')
-            const kobitonConnectionOptions = hasKobitonUserProp && hasKobitonKeyProp
-                ? [
-                    j.objectProperty(
-                        j.identifier('protocol'),
-                        j.literal('https')
-                    ),
-                    j.objectProperty(
-                        j.identifier('port'),
-                        j.identifier('443')
-                    ),
-                    j.objectProperty(
-                        j.identifier('hostname'),
-                        j.literal('api.kobiton.com')
-                    )
-                ]
-                : []
-            return (
-                j.expressionStatement(
-                    j.assignmentExpression(
-                        '=',
-                        path.value.expression.left,
-                        j.objectExpression(
-                            flattenDeep(
-                                props
-                                    .map(parseConfigProperties.bind(j))
-                                    .filter(Boolean)
-                                    .concat(kobitonConnectionOptions)
-                            )
+    root.find(j.ExpressionStatement, {
+        expression: {
+            type: 'AssignmentExpression',
+            left: {
+                object: { name: 'exports' },
+                property: { name: 'config' }
+            },
+            right: {
+                type: 'ObjectExpression'
+            }
+        }
+    }).replaceWith((path) => {
+        const props = path.value.expression.right.properties
+        let hasKobitonUserProp = props.find(({ key }) => (key.name || key.value) === 'kobitonUser')
+        let hasKobitonKeyProp = props.find(({ key }) => (key.name || key.value) === 'kobitonKey')
+        const kobitonConnectionOptions = hasKobitonUserProp && hasKobitonKeyProp
+            ? [
+                j.objectProperty(
+                    j.identifier('protocol'),
+                    j.literal('https')
+                ),
+                j.objectProperty(
+                    j.identifier('port'),
+                    j.identifier('443')
+                ),
+                j.objectProperty(
+                    j.identifier('hostname'),
+                    j.literal('api.kobiton.com')
+                )
+            ]
+            : []
+        return (
+            j.expressionStatement(
+                j.assignmentExpression(
+                    '=',
+                    path.value.expression.left,
+                    j.objectExpression(
+                        flattenDeep(
+                            props
+                                .map(parseConfigProperties.bind(j))
+                                .filter(Boolean)
+                                .concat(kobitonConnectionOptions)
                         )
                     )
                 )
             )
-        })
+        )
+    })
 
     /**
      * remove all protractor import declarations
      */
-    root.find(j.ImportDeclaration)
-        .filter((path) => path.value.source.value === 'protractor')
-        .remove()
-    root.find(j.VariableDeclaration)
-        .filter((path) => (
-            path.value.declarations.length &&
-            path.value.declarations[0].init &&
-            path.value.declarations[0].init.arguments &&
-            path.value.declarations[0].init.arguments[0] &&
-            path.value.declarations[0].init.arguments[0].value === 'protractor'
-        ))
-        .remove()
+    root.find(j.ImportDeclaration, {
+        source: { value: 'protractor' }
+    }).remove()
+    root.find(j.VariableDeclaration, {
+        declarations: [{ init: { arguments: [{ value: 'protractor' }] } }]
+    }).remove()
 
     /**
      * remove all `require('ts-node')` and `jasmine.getEnv()`
@@ -146,39 +144,30 @@ module.exports = function transformer(file, api) {
      * remove unsupported assignments like
      * browser.ignoreSynchronization = true;
      */
-    root.find(j.ExpressionStatement)
-        .filter((path) => (
-            path.value.expression.left &&
-            path.value.expression.left.object &&
-            path.value.expression.left.object.name === 'browser' &&
-            path.value.expression.left.property.name === 'ignoreSynchronization'
-        ))
-        .remove()
+    root.find(j.ExpressionStatement, {
+        expression: { left: {
+            object: { name: 'browser' },
+            property: { name: 'ignoreSynchronization' }
+        } }
+    }).remove()
 
     /**
      * transform_
      * browser.driver.findElement
      * browser.findElement
      */
-    root.find(j.MemberExpression)
-        .filter((path) => (
-            path.value.object.name === 'browser' &&
-            path.value.property.name === 'driver'
-        ))
-        .replaceWith((path) => j.identifier('browser'))
+    root.find(j.MemberExpression, {
+        object: { name: 'browser' },
+        property: { name: 'driver' }
+    }).replaceWith((path) => j.identifier('browser'))
 
     /**
      * transform:
      * element(...)
      * $('...')
      */
-    root.find(j.CallExpression)
-        .filter((path) => (
-            path.value.callee &&
-            path.value.callee.type === 'Identifier' &&
-            path.value.callee.name === 'element' &&
-            matchesSelectorExpression(path)
-        ))
+    root.find(j.CallExpression, { callee: { name: 'element' } })
+        .filter((path) => matchesSelectorExpression(path))
         .replaceWith((path) => {
             const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
             if (isCustomStrategy) {
@@ -202,190 +191,182 @@ module.exports = function transformer(file, api) {
      * element.all(...)
      * $$('...')
      */
-    root.find(j.CallExpression)
-        .filter((path) => (
-            path.value.callee &&
-            path.value.callee.type === 'MemberExpression' &&
-            path.value.callee.property.name === 'all' &&
-            matchesSelectorExpression(path)
-        ))
-        .replaceWith((path) => {
-            const scope = path.value.callee.object
-            const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
-            const hasCustomScope = scope.name !== 'element'
-            if (isCustomStrategy) {
-                return j.callExpression(
-                    hasCustomScope
-                        ? scope
-                        : j.memberExpression(
-                            j.identifier('browser'),
-                            j.identifier('custom$$')
-                        ),
-                    getSelectorArgument(j, path, path.value.arguments[0], file)
-                )
-            }
+    root.find(j.CallExpression, {
+        callee: {
+            type: 'MemberExpression',
+            property: { name: 'all' }
+        }
+    })
+    .filter((path) => matchesSelectorExpression(path))
+    .replaceWith((path) => {
+        const scope = path.value.callee.object
+        const isCustomStrategy = !SUPPORTED_SELECTORS.includes(path.value.arguments[0].callee.property.name)
+        const hasCustomScope = scope.name !== 'element'
+        if (isCustomStrategy) {
             return j.callExpression(
                 hasCustomScope
-                    ? j.memberExpression(
-                        scope,
-                        j.identifier('$$')
-                    )
-                    : j.identifier('$$'),
+                    ? scope
+                    : j.memberExpression(
+                        j.identifier('browser'),
+                        j.identifier('custom$$')
+                    ),
                 getSelectorArgument(j, path, path.value.arguments[0], file)
             )
-        })
+        }
+        return j.callExpression(
+            hasCustomScope
+                ? j.memberExpression(
+                    scope,
+                    j.identifier('$$')
+                )
+                : j.identifier('$$'),
+            getSelectorArgument(j, path, path.value.arguments[0], file)
+        )
+    })
 
     /**
      * transform:
      * element.all(...).get(0)
      * $$('...')[0]
      */
-    root.find(j.CallExpression)
-        .filter((path) => (
-            path.value.callee.object &&
-            path.value.callee.object.callee &&
-            path.value.callee.object.callee.name === '$$' &&
-            path.value.callee.property.name === 'get'
-        ))
-        .replaceWith((path) => j.memberExpression(
-            path.value.callee.object,
-            path.value.arguments[0]
-        ))
+    root.find(j.CallExpression, {
+        callee: {
+            object: { callee: { name: '$$' } },
+            property: { name: 'get' }
+        }
+    })
+    .replaceWith((path) => j.memberExpression(
+        path.value.callee.object,
+        path.value.arguments[0]
+    ))
 
     /**
      * transform
      * browser.actions().sendKeys(protractor.Key.ENTER).perform();
      * browser.keys('Enter')
      */
-    root.find(j.CallExpression)
-        .filter((path) => (
-            path.value.callee &&
-            path.value.callee.object &&
-            path.value.callee.object.callee &&
-            path.value.callee.object.callee.object &&
-            path.value.callee.object.callee.object.callee &&
-            path.value.callee.object.callee.object.callee.property &&
-            path.value.callee.object.callee.object.callee.property.name === 'actions' &&
-            path.value.callee.object.callee.property.name === 'sendKeys'
-        ))
-        .replaceWith((path) => {
-            const param = path.value.callee.object.arguments[0]
-            if (!param.object.object || param.object.object.name !== 'protractor' || param.object.property.name !== 'Key') {
-                throw new TransformError('' +
-                    'Expected "proctractor.Key.XXX" as argument to the sendKeys command. ' +
-                    'Please raise an issue in the codemod repository: https://github.com/webdriverio/codemod/issues/new',
-                    path.value,
-                    file
-                )
-            }
-
-            const key = param.property.name.slice(0, 1).toUpperCase() + camelCase(param.property.name).slice(1)
-            return j.callExpression(
-                j.memberExpression(
-                    j.identifier('browser'),
-                    j.identifier('keys')
-                ),
-                [
-                    j.literal(key)
-                ]
+    root.find(j.CallExpression, {
+        callee: { object: { callee: {
+            object: { callee: { property: { name: 'actions' } } },
+            property: { name: 'sendKeys' }
+        } } }
+    }).replaceWith((path) => {
+        const param = path.value.callee.object.arguments[0]
+        if (!param.object.object || param.object.object.name !== 'protractor' || param.object.property.name !== 'Key') {
+            throw new TransformError('' +
+                'Expected "proctractor.Key.XXX" as argument to the sendKeys command. ' +
+                'Please raise an issue in the codemod repository: https://github.com/webdriverio/codemod/issues/new',
+                path.value,
+                file
             )
-        })
+        }
+
+        const key = param.property.name.slice(0, 1).toUpperCase() + camelCase(param.property.name).slice(1)
+        return j.callExpression(
+            j.memberExpression(
+                j.identifier('browser'),
+                j.identifier('keys')
+            ),
+            [
+                j.literal(key)
+            ]
+        )
+    })
 
     /**
      * transform browser commands
      */
-    root.find(j.CallExpression)
-        .filter((path) => (
-            path.value.callee &&
-            path.value.callee.type === 'MemberExpression' &&
-            path.value.callee.object.name === 'browser'
-        ))
-        .replaceWith((path) => {
-            const method = path.value.callee.property.name
-            let args = path.value.arguments
+    root.find(j.CallExpression, {
+        callee: {
+            type: 'MemberExpression',
+            object: { name: 'browser' }
+        }
+    }).replaceWith((path) => {
+        const method = path.value.callee.property.name
+        let args = path.value.arguments
 
-            /**
-             * throw error for methods that can't be transformed
-             */
-            if (method === 'touchActions') {
-                throw new TransformError(
-                    format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/browser/touchAction'),
-                    path.value,
-                    file
-                )
-            } else if (method === 'actions') {
-                throw new TransformError(
-                    format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/webdriver#performactions'),
-                    path.value,
-                    file
-                )
-            } else if (method === 'setLocation') {
-                throw new TransformError(
-                    format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/browser/url'),
-                    path.value,
-                    file
-                )
-            } else if (UNSUPPORTED_COMMANDS.includes(method)) {
-                throw new TransformError(
-                    format(UNSUPPORTED_COMMAND_ERROR, method, 'https://github.com/webdriverio/codemod/issues/new'),
-                    path.value.callee.property,
-                    file
-                )
-            } else if (method === 'getProcessedConfig') {
-                return j.memberExpression(
+        /**
+         * throw error for methods that can't be transformed
+         */
+        if (method === 'touchActions') {
+            throw new TransformError(
+                format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/browser/touchAction'),
+                path.value,
+                file
+            )
+        } else if (method === 'actions') {
+            throw new TransformError(
+                format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/webdriver#performactions'),
+                path.value,
+                file
+            )
+        } else if (method === 'setLocation') {
+            throw new TransformError(
+                format(INCOMPATIBLE_COMMAND_ERROR, method, 'https://webdriver.io/docs/api/browser/url'),
+                path.value,
+                file
+            )
+        } else if (UNSUPPORTED_COMMANDS.includes(method)) {
+            throw new TransformError(
+                format(UNSUPPORTED_COMMAND_ERROR, method, 'https://github.com/webdriverio/codemod/issues/new'),
+                path.value.callee.property,
+                file
+            )
+        } else if (method === 'getProcessedConfig') {
+            return j.memberExpression(
+                path.value.callee.object,
+                j.identifier('config')
+            )
+        } else if (['findElement', 'findElements'].includes(method)) {
+            return j.callExpression(
+                j.memberExpression(
                     path.value.callee.object,
-                    j.identifier('config')
-                )
-            } else if (['findElement', 'findElements'].includes(method)) {
-                return j.callExpression(
-                    j.memberExpression(
-                        path.value.callee.object,
-                        j.identifier(method === 'findElement' ? '$' : '$$')
-                    ),
-                    getSelectorArgument(j, path, args[0], file)
-                )
-            } else if (method === 'get') {
-                args = path.value.arguments.slice(0, 1)
-            } else if (method === 'wait' && args.length > 1) {
-                return j.callExpression(
-                    j.memberExpression(
-                        path.value.callee.object,
-                        j.identifier(replaceCommands(method))
-                    ),
-                    [
-                        args[0],
-                        j.objectExpression([
-                            ...(args[1]
-                                ? [
-                                    j.objectProperty(
-                                        j.identifier('timeout'),
-                                        args[1]
-                                    )
-                                ]
-                                : []
-                            ),
-                            ...(args[2]
-                                ? [
-                                    j.objectProperty(
-                                        j.identifier('timeoutMsg'),
-                                        args[2]
-                                    )
-                                ]
-                                : []
-                            )
-                        ])
-                    ]
-                )
-            }
-
+                    j.identifier(method === 'findElement' ? '$' : '$$')
+                ),
+                getSelectorArgument(j, path, args[0], file)
+            )
+        } else if (method === 'get') {
+            args = path.value.arguments.slice(0, 1)
+        } else if (method === 'wait' && args.length > 1) {
             return j.callExpression(
                 j.memberExpression(
                     path.value.callee.object,
                     j.identifier(replaceCommands(method))
                 ),
-                args
+                [
+                    args[0],
+                    j.objectExpression([
+                        ...(args[1]
+                            ? [
+                                j.objectProperty(
+                                    j.identifier('timeout'),
+                                    args[1]
+                                )
+                            ]
+                            : []
+                        ),
+                        ...(args[2]
+                            ? [
+                                j.objectProperty(
+                                    j.identifier('timeoutMsg'),
+                                    args[2]
+                                )
+                            ]
+                            : []
+                        )
+                    ])
+                ]
             )
-        })
+        }
+
+        return j.callExpression(
+            j.memberExpression(
+                path.value.callee.object,
+                j.identifier(replaceCommands(method))
+            ),
+            args
+        )
+    })
 
     /**
      * transform
@@ -630,58 +611,56 @@ module.exports = function transformer(file, api) {
      * browser.switchTo().window(handles[handles.length - 1]);
      * ```
      */
-    root.find(j.ExpressionStatement)
-        .filter((path) => (
-            path.value.expression &&
-            path.value.expression.type === 'AwaitExpression' &&
-            path.value.expression.argument.type === 'CallExpression' &&
-            path.value.expression.argument.callee.property.name === 'then'
-        ))
-        .replaceWith((path) => {
-            return [
-                j.variableDeclaration(
-                'let',
-                [
-                    j.variableDeclarator(
-                        j.identifier(path.value.expression.argument.arguments[0].params[0].name),
-                        j.awaitExpression(path.value.expression.argument.callee.object)
-                    )
-                ]
-                ),
-                ...path.value.expression.argument.arguments[0].body.body
-            ]
-        })
+    root.find(j.ExpressionStatement, {
+        expression: {
+            type: 'AwaitExpression',
+            argument: {
+                type: 'CallExpression',
+                callee: { property: { name: 'then' } }
+            }
+        }
+    }).replaceWith((path) => [
+        j.variableDeclaration(
+        'let',
+        [
+            j.variableDeclarator(
+                j.identifier(path.value.expression.argument.arguments[0].params[0].name),
+                j.awaitExpression(path.value.expression.argument.callee.object)
+            )
+        ]
+        ),
+        ...path.value.expression.argument.arguments[0].body.body
+    ])
 
     /**
      * transform by.addLocator
      */
-    root.find(j.CallExpression)
-        .filter((path) => (
-            path.value.callee &&
-            path.value.callee.type === 'MemberExpression' &&
-            path.value.callee.object.name === 'by' &&
-            path.value.callee.property.name === 'addLocator'
-        ))
-        .replaceWith((path) => {
-            /**
-             * check if user uses rootSelector parameter which is not supported
-             * in WebdriverIO
-             */
-            if (path.value.arguments[1].params.length > 2) {
-                const errorText = '' +
-                    `WebdriverIO doesn't support the "rootSelector" ` +
-                    `parameter in the custom locator function.`
-                throw new TransformError(errorText, path, file)
-            }
+    root.find(j.CallExpression, {
+        callee: {
+            type: 'MemberExpression',
+            object: { name: 'by' },
+            property: { name: 'addLocator' }
+        }
+    }).replaceWith((path) => {
+        /**
+         * check if user uses rootSelector parameter which is not supported
+         * in WebdriverIO
+         */
+        if (path.value.arguments[1].params.length > 2) {
+            const errorText = '' +
+                `WebdriverIO doesn't support the "rootSelector" ` +
+                `parameter in the custom locator function.`
+            throw new TransformError(errorText, path, file)
+        }
 
-            return j.callExpression(
-                j.memberExpression(
-                    j.identifier('browser'),
-                    j.identifier('addLocatorStrategy')
-                ),
-                path.value.arguments
-            )
-        })
+        return j.callExpression(
+            j.memberExpression(
+                j.identifier('browser'),
+                j.identifier('addLocatorStrategy')
+            ),
+            path.value.arguments
+        )
+    })
 
     /**
      * transform `browser.switchTo().frame('composeWidget');`
@@ -709,53 +688,51 @@ module.exports = function transformer(file, api) {
             j.literal('wdio-wait-for')
         ]
     )
-    root.find(j.VariableDeclaration)
-        .filter((path) => (
-            path.value.declarations[0] &&
-            path.value.declarations[0].init &&
-            path.value.declarations[0].init.object &&
-            path.value.declarations[0].init.object.name === 'protractor' &&
-            path.value.declarations[0].init.property.name === 'ExpectedConditions'
-        ))
-        .replaceWith((path) => j.variableDeclaration(
-            path.value.kind,
-            [
-                j.variableDeclarator(
-                    path.value.declarations[0].id,
-                    wdioWaitForImport
-                )
-            ]
-        ))
+    root.find(j.VariableDeclaration, {
+        declarations: [{
+            init: {
+                object: { name: 'protractor' },
+                property: { name: 'ExpectedConditions' }
+            }
+        }]
+    }).replaceWith((path) => j.variableDeclaration(
+        path.value.kind,
+        [
+            j.variableDeclarator(
+                path.value.declarations[0].id,
+                wdioWaitForImport
+            )
+        ]
+    ))
 
     /**
      * transform expected conditions not put into a var
      */
-    root.find(j.MemberExpression)
-        .filter((path) => (
-            path.value.object.object &&
-            path.value.object.object.name === 'protractor' &&
-            path.value.object.property.name === 'ExpectedConditions'
-        ))
-        .replaceWith((path) => j.memberExpression(
-            wdioWaitForImport,
-            path.value.property
-        ))
+    root.find(j.MemberExpression, {
+        object: {
+            object: { name: 'protractor' },
+            property: { name: 'ExpectedConditions' }
+        }
+    }).replaceWith((path) => j.memberExpression(
+        wdioWaitForImport,
+        path.value.property
+    ))
 
     /**
      * no support
      */
-    root.find(j.MemberExpression)
-        .filter((path) => path.value.object.name === 'protractor')
-        .replaceWith((path) => {
-            throw new TransformError('' +
-                `"${path.value.object.name}.${path.value.property.name}" ` +
-                'is unknown to this codemod. If this kind of code appears ' +
-                'often in your code base, please raise an issue in the codemod ' +
-                'repository: https://github.com/webdriverio/codemod/issues/new.',
-                path.value,
-                file
-            )
-        })
+    root.find(j.MemberExpression, {
+        object: { name: 'protractor' }
+    }).replaceWith((path) => {
+        throw new TransformError('' +
+            `"${path.value.object.name}.${path.value.property.name}" ` +
+            'is unknown to this codemod. If this kind of code appears ' +
+            'often in your code base, please raise an issue in the codemod ' +
+            'repository: https://github.com/webdriverio/codemod/issues/new.',
+            path.value,
+            file
+        )
+    })
 
     return root.toSource();
 }
