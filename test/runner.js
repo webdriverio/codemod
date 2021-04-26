@@ -66,11 +66,10 @@ async function runTest (framework, tests) {
 
         expect(sourceFileContent).toEqual(desiredFileContent)
     }
-
-    shell.rm('-r', path.join(__dirname, 'testdata'))
 }
 
 ;(async () => {
+    const teardown = () => shell.rm('-r', path.join(__dirname, 'testdata'))
     const testsToRun = process.argv.length === 3
         ? { [process.argv[2]]: frameworkTests[process.argv[2]] }
         : frameworkTests
@@ -78,7 +77,7 @@ async function runTest (framework, tests) {
         console.log('========================')
         console.log(`Run tests for ${framework}`)
         console.log('========================\n')
-        await runTest(framework, tests)
+        await runTest(framework, tests).finally(teardown)
     }
 })().then(
     () => console.log('Tests passed ✅'),
