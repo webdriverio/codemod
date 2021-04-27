@@ -25,7 +25,8 @@ const frameworkTests = {
         ['./failing_anythingProtractor.js']
     ],
     v7: [
-        ['./spec.js', './spec.js']
+        ['./spec.js', './spec.js'],
+        ['./compilerFunctions.js', './compilerFunctions.js']
     ]
 }
 

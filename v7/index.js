@@ -1,5 +1,6 @@
 const {
-    OBSOLETE_REQUIRE_MODULES
+    OBSOLETE_REQUIRE_MODULES,
+    COMPILER_OPTS_MAPPING
 } = require('./constants')
 
 module.exports = function transformer(file, api) {
@@ -52,20 +53,49 @@ module.exports = function transformer(file, api) {
                         importName = value.value
                     } else if (value.type === 'ArrayExpression') {
                         importName = value.elements[0].value
-
-                        const compileOptsName = importName === '@babel/register'
-                            ? 'babelOpts'
-                            : importName === 'ts-node/register'
-                                ? 'tsNodeOpts'
-                                : 'tsConfigPathsOpts'
-                        autoCompileOpts[compileOptsName] = value.elements[1].properties
+                        if (!Object.keys(COMPILER_OPTS_MAPPING).includes(importName)) {
+                            return true
+                        }
+                        autoCompileOpts[COMPILER_OPTS_MAPPING[importName]] = value.elements[1].properties
                     } else {
-                        throw new Error(`Unexpected require input ${value.type}`)
+                        return true
                     }
                     return !OBSOLETE_REQUIRE_MODULES.includes(importName)
                 }))
             )
         })
+
+    /**
+     * fetch compiler require calls within function blocks
+     */
+    root.find(j.ExpressionStatement, {
+        expression: {
+            callee: { object: { callee: { name: 'require' } } }
+        }
+    }).filter((path) => (
+        Object.keys(COMPILER_OPTS_MAPPING).map((c) => c.split('/')[0]).includes(
+            path.value.expression.callee.object.arguments.length &&
+            path.value.expression.callee.object.arguments[0].value
+        )
+    )).replaceWith((path) => {
+        const compiler = path.value.expression.callee.object.arguments[0].value
+        autoCompileOpts[COMPILER_OPTS_MAPPING[`${compiler}/register`]] = path.value.expression.arguments[0].properties
+    })
+    root.find(j.ArrowFunctionExpression, {
+        body: {
+            callee: { callee: { name: 'require' } }
+        }
+    }).filter((path) => (
+        Object.keys(COMPILER_OPTS_MAPPING).map((c) => c.startsWith('@') ? c : c.split('/')[0]).includes(
+            path.value.body.callee.arguments.length &&
+            path.value.body.callee.arguments[0].value
+        )
+    )).replaceWith((path) => {
+        const compiler = path.value.body.callee.arguments[0].value
+        const module = compiler.startsWith('@') ? compiler : `${compiler}/register`
+        autoCompileOpts[COMPILER_OPTS_MAPPING[module]] = path.value.body.arguments[0].properties
+        return []
+    })
 
     /**
      * update config with compiler opts
