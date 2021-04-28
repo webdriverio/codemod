@@ -770,20 +770,17 @@ module.exports = function transformer(file, api) {
                     j.blockStatement(path.value.value.body.body.filter((e) => !isElementDeclaration(e)))
                 )
             ),
-            ...[...elementGetters.entries()].map(([elemName, object]) => {
-                console.log(object);
-                return j.methodDefinition(
-                    'get',
-                    elemName,
-                    j.functionExpression(
-                        null,
-                        [],
-                        j.blockStatement([
-                            j.returnStatement(object)
-                        ])
-                    )
+            ...[...elementGetters.entries()].map(([elemName, object]) => j.methodDefinition(
+                'get',
+                elemName,
+                j.functionExpression(
+                    null,
+                    [],
+                    j.blockStatement([
+                        j.returnStatement(object)
+                    ])
                 )
-            })
+            ))
         ]
     })
 
