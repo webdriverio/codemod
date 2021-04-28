@@ -41,6 +41,19 @@ exports.config = {
 
     framework: "jasmine",
     framework: 'jasmine',
+
+    autoCompileOpts: {
+        autoCompile: true,
+
+        tsNodeOpts: {
+            project: require('path').join(__dirname, './tsconfig.e2e.json')
+        },
+
+        babelOpts: {
+            presets: [ 'es2015' ]
+        }
+    },
+
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
     region: 'eu-central-1',

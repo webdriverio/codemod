@@ -2,11 +2,7 @@ import { Given, When, Then } from "@cucumber/cucumber";
 const { Given2, When2, Then2 } = require("@cucumber/cucumber");
 
 exports.config = {
-    mochaOpts: {
-        ui: 'bdd',
-        timeout: 5000,
-        require: ['/foo/bar']
-    },
+    framework: 'jasmine',
 
     autoCompileOpts: {
         autoCompile: true,
@@ -23,6 +19,12 @@ exports.config = {
         tsNodeOpts: {
             bar: 'foo'
         }
+    },
+
+    mochaOpts: {
+        ui: 'bdd',
+        timeout: 5000,
+        require: ['/foo/bar']
     },
 
     jasmineOpts: {

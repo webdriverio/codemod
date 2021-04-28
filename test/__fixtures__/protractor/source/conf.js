@@ -1,3 +1,8 @@
+// solves `SyntaxError: Unexpected token import`
+require("babel-register")({
+    presets: [ 'es2015' ]
+});
+
 // Tests for the calculator.
 exports.config = {
     seleniumAddress: 'https://ondemand.saucelabs.com/wd/hub',

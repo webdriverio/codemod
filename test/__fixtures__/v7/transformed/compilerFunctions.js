@@ -1,10 +1,5 @@
 exports.config = {
-    cucumberOpts: {
-        requireModule: [() => {
-            console.log('foo');
-            console.log('bar');
-        }]
-    },
+    framework: 'jasmine',
 
     autoCompileOpts: {
         autoCompile: true,
@@ -21,6 +16,13 @@ exports.config = {
         babelOpts: {
             ignore: []
         }
+    },
+
+    cucumberOpts: {
+        requireModule: [() => {
+            console.log('foo');
+            console.log('bar');
+        }]
     },
 
     jasmineOpts: {

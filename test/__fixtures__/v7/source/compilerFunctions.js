@@ -1,4 +1,6 @@
 exports.config = {
+    framework: 'jasmine',
+
     cucumberOpts: {
         requireModule: [
             () => {
