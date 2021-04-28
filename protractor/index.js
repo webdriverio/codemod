@@ -97,32 +97,39 @@ module.exports = function transformer(file, api) {
     }).remove()
 
     /**
-     * remove all `require('ts-node')` and `jasmine.getEnv()`
+     * remove `require("babel-register")({ ... })`
      */
-    root.find(j.ExpressionStatement)
-        .filter((path) => {
-            if (
-                !path.value.expression.callee ||
-                !path.value.expression.callee.object
-            ) {
-                return false
-            }
-            const expr = path.value.expression.callee.object
-            return (
-                (
-                    expr.callee && expr.callee.name === 'require' &&
-                    expr.arguments && expr.arguments[0].value === 'ts-node'
-                ) ||
-                (
-                    expr.callee &&
-                    expr.callee.object &&
-                    expr.callee.object.name === 'jasmine' &&
-                    expr.callee.property.name === 'getEnv'
-                )
-            )
-        })
-        .remove()
+    root.find(j.ExpressionStatement, {
+        expression: { callee: {
+            callee: { name: 'require' },
+            arguments: [{
+                value: 'babel-register'
+            }]
+        } }
+    }).remove()
 
+    /**
+     * remove all `jasmine.getEnv()`
+     */
+    root.find(j.ExpressionStatement, {
+        expression: { callee: {
+            object: {
+                callee: { name: 'require' },
+                arguments: [{ value: 'ts-node' }]
+            },
+            property: { name: 'register' }
+        } }
+    }).remove()
+
+    /**
+     * remove all `require('ts-node').register({ ... })`
+     */
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { object: { callee: {
+            object: { name: 'jasmine' },
+            property: { name: 'getEnv' }
+        } } } }
+    }).remove()
 
     /**
      * remove command statements that aren't useful in WebdriverIO world
