@@ -24,6 +24,10 @@ To transform you code, run:
 
 ```sh
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/<framework> <path>
+# e.g. to migrate from v5 to v6
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/
+# e.g. to migrate from v6 to v7:
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./e2e/
 # e.g. to transform Protractor code:
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./e2e/
 ```
