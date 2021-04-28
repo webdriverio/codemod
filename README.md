@@ -3,8 +3,9 @@ WebdriverIO Codemod [![Test](https://github.com/webdriverio/protractor-codemod/a
 
 This project contains various codemods to help migrating from either one major WebdriverIO version to another or from a specific framework to WebdriverIO. It can be used with [jscodeshift](https://www.npmjs.com/package/jscodeshift) and currently supports the following migrations:
 
-- [x] Protractor ▶️&nbsp; WebdriverIO (see [migration guide](https://webdriver.io/docs/protractor-migration))
+- [x] v5 ▶️&nbsp; v6 (see [migration guide](https://webdriver.io/docs/v6-migration))
 - [x] v6 ▶️&nbsp; v7 (see [migration guide](https://webdriver.io/docs/v7-migration))
+- [x] Protractor ▶️&nbsp; WebdriverIO (see [migration guide](https://webdriver.io/docs/protractor-migration))
 - [ ] _more will eventually follow, let us know which ones you would like to see_
 
 If you run into any issues during your migration please [let us know](https://github.com/webdriverio/codemod/discussions/new).
@@ -23,6 +24,10 @@ To transform you code, run:
 
 ```sh
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/<framework> <path>
+# e.g. to migrate from v5 to v6
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/
+# e.g. to migrate from v6 to v7:
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./e2e/
 # e.g. to transform Protractor code:
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./e2e/
 ```
