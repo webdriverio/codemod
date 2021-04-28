@@ -39,6 +39,7 @@ exports.ELEMENT_COMMANDS = [
     'submit',
     'getId',
     'clone',
+    'column',
     'count',
     'click',
     'getTagName',
@@ -66,7 +67,8 @@ exports.UNSUPPORTED_COMMANDS = [
     'getRegisteredMockModules',
     'controlFlowIsEnabled',
     'evaluate',
-    'clone'
+    'clone',
+    'column'
 ]
 
 exports.UNSUPPORTED_COMMAND_ERROR = '' +
