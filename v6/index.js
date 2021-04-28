@@ -32,5 +32,20 @@ module.exports = function transformer(file, api) {
         ))
     }
 
+    /**
+     * transform command names
+     */
+    root.find(j.CallExpression, {
+        callee: { property: { name: 'launchApp' } }
+    }).replaceWith((path) => (
+        j.callExpression(
+            j.memberExpression(
+                path.value.callee.object,
+                j.identifier('launchChromeApp')
+            ),
+            path.value.arguments
+        )
+    ))
+
     return root.toSource()
 }

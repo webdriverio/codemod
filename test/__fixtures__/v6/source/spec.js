@@ -28,3 +28,5 @@ elem.waitForDisplayed(123, false, 'foobar', 321)
 elem.waitForDisplayed(undefined, true);
 elem.waitForEnabled(3000, true, new Error('foobar'))
 elem.waitForExist(3000, true, new Error('foobar'))
+
+browser.launchApp('aohghmighlieiainnegkcijnfilokake')

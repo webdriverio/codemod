@@ -63,3 +63,5 @@ elem.waitForExist({
     reverse: true,
     timeoutMsg: new Error('foobar')
 })
+
+browser.launchChromeApp('aohghmighlieiainnegkcijnfilokake')
