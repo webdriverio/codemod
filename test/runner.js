@@ -11,6 +11,7 @@ const frameworkTests = {
         ['./spec.js', './spec.js'],
         ['./element.js', './element.js'],
         ['./locators.js', './locators.js'],
+        ['./class.js', './class.js'],
         ['./failing_byBinding.js'],
         ['./failing_byCssContainingTextRegex.js'],
         ['./failing_touchActions.js'],

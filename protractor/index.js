@@ -744,6 +744,49 @@ module.exports = function transformer(file, api) {
         )
     })
 
+    /**
+     * transform element declarations in class constructors into getters
+     */
+    const elementGetters = new Map()
+    root.find(j.MethodDefinition, { kind: 'constructor' }).replaceWith((path) => {
+        const isElementDeclaration = (e) => (
+            e.expression && e.expression.type === 'AssignmentExpression' &&
+            e.expression.left.object && e.expression.left.object.type === 'ThisExpression' &&
+            e.expression.left.property && e.expression.left.property.type === 'Identifier' &&
+            e.expression.right.callee && ['$', '$$'].includes(e.expression.right.callee.name)
+        )
+
+        for (const e of path.value.value.body.body.filter(isElementDeclaration)) {
+            elementGetters.set(e.expression.left.property, e.expression.right)
+        }
+
+        return [
+            j.methodDefinition(
+                path.value.kind,
+                path.value.key,
+                j.functionExpression(
+                    path.value.value.id,
+                    path.value.value.params,
+                    j.blockStatement(path.value.value.body.body.filter((e) => !isElementDeclaration(e)))
+                )
+            ),
+            ...[...elementGetters.entries()].map(([elemName, object]) => {
+                console.log(object);
+                return j.methodDefinition(
+                    'get',
+                    elemName,
+                    j.functionExpression(
+                        null,
+                        [],
+                        j.blockStatement([
+                            j.returnStatement(object)
+                        ])
+                    )
+                )
+            })
+        ]
+    })
+
     compilers.update(j, root, autoCompileOpts)
     return root.toSource()
 }
