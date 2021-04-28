@@ -26,7 +26,8 @@
   "dependencies": {
     "camelcase": "^6.2.0",
     "jscodeshift": "^0.11.0",
-    "lodash.flattendeep": "^4.4.0"
+    "lodash.flattendeep": "^4.4.0",
+    "param-case": "^3.0.4"
   },
   "devDependencies": {
     "expect": "^26.6.2",

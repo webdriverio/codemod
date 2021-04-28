@@ -1,4 +1,6 @@
-const { COMMAND_TRANSFORMS, COMMANDS_WITHOUT_FIRST_PARAM } = require('./constants')
+const { paramCase } = require('param-case')
+
+const { COMMAND_TRANSFORMS, COMMANDS_WITHOUT_FIRST_PARAM, SERVICE_PROPS, SERVICE_PROP_MAPPING } = require('./constants')
 
 module.exports = function transformer(file, api) {
     const j = api.jscodeshift;
@@ -45,6 +47,71 @@ module.exports = function transformer(file, api) {
             ),
             path.value.arguments
         )
+    ))
+
+    /**
+     * convert Appium configs
+     */
+    let appiumConfigs, applitoolsConfigs
+    const configs = {}
+    for (const prop of ['appium', 'applitools', 'firefoxProfile']) {
+        root.find(j.ObjectExpression)
+            .filter((path) => {
+                const props = path.value.properties.map((p) => p.key && p.key.name).filter(Boolean)
+                return props.includes('services') && props.includes(prop)
+            })
+            .replaceWith((path) => {
+                configs[paramCase(prop)] = path.value.properties
+                    .find((p) => p.key && p.key.name === prop)
+                    .value
+                return j.objectExpression(
+                    path.value.properties
+                        .filter((p) => p.key && p.key.name !== prop)
+                )
+            })
+    }
+    for (const [service, props] of Object.entries(SERVICE_PROPS)) {
+        root.find(j.ObjectExpression)
+            .filter((path) => path.value.properties.find((p) => (
+                p.key &&
+                p.key.name === 'services' &&
+                p.value.elements.find((elem) => elem.value === service)
+            )))
+            .replaceWith((path) => {
+                configs[service] = j.objectExpression(path.value.properties
+                    .filter((p) => p.key && props.includes(p.key.name))
+                    .map((p) => {
+                        if (!SERVICE_PROP_MAPPING[service] || !SERVICE_PROP_MAPPING[service][p.key.name]) {
+                            return p
+                        }
+                        return j.property(
+                            'init',
+                            j.identifier(SERVICE_PROP_MAPPING[service][p.key.name]),
+                            p.value
+                        )
+                    })
+                )
+                return j.objectExpression(
+                    path.value.properties
+                        .filter((p) => p.key && !props.includes(p.key.name))
+                )
+            })
+    }
+
+    root.find(j.Property, {
+        key: { name: 'services' }
+    }).replaceWith((path) => j.property(
+        'init',
+        j.identifier('services'),
+        j.arrayExpression(path.value.value.elements.map((elem) => {
+            if (Object.keys(configs).includes(elem.value)) {
+                return j.arrayExpression([
+                    j.literal(elem.value),
+                    configs[elem.value]
+                ])
+            }
+            return elem
+        }))
     ))
 
     return root.toSource()
