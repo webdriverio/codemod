@@ -1,6 +1,7 @@
 const { format } = require('util')
 const camelCase = require('camelcase')
 const flattenDeep = require('lodash.flattendeep')
+const compilers = require('../common/compilers')
 
 const {
     SUPPORTED_SELECTORS,
@@ -85,6 +86,8 @@ module.exports = function transformer(file, api) {
             )
         )
     })
+
+    const autoCompileOpts = compilers.remove(j, root)
 
     /**
      * remove all protractor import declarations
@@ -741,5 +744,6 @@ module.exports = function transformer(file, api) {
         )
     })
 
+    compilers.update(j, root, autoCompileOpts)
     return root.toSource()
 }
