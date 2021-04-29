@@ -241,7 +241,7 @@ function parseConfigProperties (property) {
     const value = property.value.value
     if (name === 'seleniumAddress') {
         return parseSeleniumAddress.call(this, value)
-    } else if (name === 'capabilities') {
+    } else if (name === 'capabilities' && property.value.properties) {
         const { rootLevelConfigs, parsedCaps } = parseCapabilities.call(this, property.value.properties)
         return [
             ...rootLevelConfigs,
@@ -255,6 +255,9 @@ function parseConfigProperties (property) {
         const pc = []
 
         for (const caps of property.value.elements) {
+            if (!caps.properties) {
+                continue
+            }
             const { rootLevelConfigs, parsedCaps } = parseCapabilities.call(this, caps.properties)
             rlc.push(...rootLevelConfigs)
             pc.push(this.objectExpression(parsedCaps))
