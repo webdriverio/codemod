@@ -2,7 +2,7 @@
   "name": "@wdio/codemod",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "A codemod to transform test files written in Protractor into WebdriverIO tests",
   "keywords": [
     "schematics",
