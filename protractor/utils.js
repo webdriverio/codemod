@@ -448,14 +448,14 @@ const filterFor = (type) => ({
 function sanitizeAsyncCalls (j, root) {
     root.find(j.AwaitExpression, filterFor('Identifier'))
         .filter(filterElementCalls)
-        .replaceWith(({ value: { argument: { callee, arguments } } }) => (
+        .replaceWith(({ value: { argument } }) => (
             j.awaitExpression(
                 j.callExpression(
                     j.memberExpression(
-                        j.awaitExpression(callee.object),
-                        callee.property
+                        j.awaitExpression(argument.callee.object),
+                        argument.callee.property
                     ),
-                    arguments
+                    argument.arguments
                 )
             )
         ))
@@ -463,17 +463,17 @@ function sanitizeAsyncCalls (j, root) {
     root.find(j.AwaitExpression, filterFor('Literal'))
         .filter(filterElementCalls)
         .filter(({ value: { argument: { callee } } }) => callee.object.object.type === 'MemberExpression')
-        .replaceWith(({ value: { argument: { callee, arguments } } }) => (
+        .replaceWith(({ value: { argument } }) => (
             j.awaitExpression(
                 j.callExpression(
                     j.memberExpression(
                         j.memberExpression(
-                            j.awaitExpression(callee.object.object),
-                            callee.object.property
+                            j.awaitExpression(argument.callee.object.object),
+                            argument.callee.object.property
                         ),
-                        callee.property
+                        argument.callee.property
                     ),
-                    arguments
+                    argument.arguments
                 )
             )
         ))
