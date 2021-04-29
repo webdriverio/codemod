@@ -138,15 +138,17 @@ module.exports = function transformer(file, api) {
     }).remove()
 
     /**
-     * remove command statements that aren't useful in WebdriverIO world
+     * remove command statements that aren't useful in WebdriverIO world, e.g.
+     * await $('body').allowAnimations(false);
+     * browser.waitForAngularEnabled(true)
      */
     root.find(j.ExpressionStatement)
-        .filter((path) => {
+        .filter(({ value: { expression } }) => {
             const expr = (
-                path.value.expression.callee ||
+                expression.callee ||
                 (
-                    path.value.expression.argument &&
-                    path.value.expression.argument.callee
+                    expression.argument &&
+                    expression.argument.callee
                 )
             )
             return (expr && expr.property && COMMANDS_TO_REMOVE.includes(expr.property.name))
