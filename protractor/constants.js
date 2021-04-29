@@ -27,7 +27,7 @@ exports.SUPPORTED_SELECTORS = [
     'partialButtonText'
 ]
 
-exports.ELEMENT_COMMANDS = [
+exports.PRTRCTR_ELEMENT_COMMANDS = [
     'sendKeys',
     'isPresent',
     'isElementPresent',

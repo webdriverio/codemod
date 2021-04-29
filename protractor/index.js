@@ -5,7 +5,7 @@ const compilers = require('../common/compilers')
 
 const {
     SUPPORTED_SELECTORS,
-    ELEMENT_COMMANDS,
+    PRTRCTR_ELEMENT_COMMANDS,
     SELECTOR_COMMANDS,
     UNSUPPORTED_COMMANDS,
     COMMANDS_TO_REMOVE,
@@ -17,6 +17,7 @@ const {
     REPLACE_MANAGE_COMMANDS,
     REPLACE_NAVIGATE_COMMANDS
 } = require('./constants')
+const { ELEMENT_COMMANDS } = require('../common/constants')
 const {
     isCustomStrategy,
     TransformError,
@@ -494,7 +495,7 @@ module.exports = function transformer(file, api) {
         .filter((path) => (
             path.value.callee &&
             path.value.callee.type === 'MemberExpression' &&
-            ELEMENT_COMMANDS.includes(path.value.callee.property.name)
+            PRTRCTR_ELEMENT_COMMANDS.includes(path.value.callee.property.name)
         ))
         .replaceWith((path) => {
             const command = path.value.callee.property.name
@@ -787,6 +788,61 @@ module.exports = function transformer(file, api) {
             ))
         ]
     })
+
+    /**
+     * transform lazy loaded element calls in async context, e.g.
+     * await friendPage.addnameBox.setValue('Some text...');
+     * to:
+     * await (await friendPage.addnameBox).setValue('Some text...');
+     */
+    const ELEM_PROPS = ['length']
+    root.find(j.AwaitExpression, {
+        argument: { callee: { object: {
+            type: 'MemberExpression',
+            property: { type: 'Identifier' }
+        } } }
+    }).filter((path) => (
+        ELEMENT_COMMANDS.includes(path.value.argument.callee.property.name) ||
+        ELEM_PROPS.includes(path.value.argument.callee.property.name)
+    )).replaceWith((path) => j.awaitExpression(
+        j.callExpression(
+            j.memberExpression(
+                j.awaitExpression(path.value.argument.callee.object),
+                path.value.argument.callee.property
+            ),
+            path.value.argument.arguments
+        )
+    ))
+
+    /**
+     * transform lazy loaded elements calls in async context, e.g.
+     * await friendPage.addnameBox[0].setValue('Some text...');
+     * to:
+     * await (await friendPage.addnameBox)[0].setValue('Some text...');
+     */
+    root.find(j.AwaitExpression, {
+        argument: { callee: { object: {
+            type: 'MemberExpression',
+            property: { type: 'Literal' }
+        } } }
+    }).filter((path) => {
+        console.log('ÄYII', path.value.argument.callee.property.name);
+        return (
+            ELEMENT_COMMANDS.includes(path.value.argument.callee.property.name) ||
+            ELEM_PROPS.includes(path.value.argument.callee.property.name)
+        )
+    }).replaceWith((path) => j.awaitExpression(
+        j.callExpression(
+            j.memberExpression(
+                j.memberExpression(
+                    j.awaitExpression(path.value.argument.callee.object.object),
+                    path.value.argument.callee.object.property
+                ),
+                path.value.argument.callee.property
+            ),
+            path.value.argument.arguments
+        )
+    ))
 
     compilers.update(j, root, autoCompileOpts)
     return root.toSource()

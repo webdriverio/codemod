@@ -4,7 +4,8 @@ browser.$('.parent');
 browser.$('.parent');
 
 (async () => {
-    await this.deleteButtons[0].click();
+    await (await this.deleteButtons)[0].click();
+    await (await this.deleteButton).setValue('Some text...');
 })();
 
 // Using getDriver to find the parent web element to find the cat li
