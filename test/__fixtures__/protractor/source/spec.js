@@ -102,3 +102,7 @@ browser.navigate().back();
 browser.navigate().forward();
 browser.navigate().refresh();
 browser.navigate().to("https://webdriver.io");
+
+browser.waitForAngularEnabled(false);
+browser.waitForAngular();
+browser.angularAppRoot('sp-app');

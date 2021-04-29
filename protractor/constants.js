@@ -54,13 +54,15 @@ exports.PRTRCTR_ELEMENT_COMMANDS = [
     'getPosition',
     'setSize'
 ]
-exports.COMMANDS_TO_REMOVE = ['allowAnimations']
-exports.UNSUPPORTED_COMMANDS = [
+exports.COMMANDS_TO_REMOVE = [
     'angularAppRoot',
+    'allowAnimations',
+    'waitForAngular',
     'waitForAngularEnabled',
+]
+exports.UNSUPPORTED_COMMANDS = [
     'forkNewDriverInstance',
     'useAllAngular2AppRoots',
-    'waitForAngular',
     'addMockModule',
     'clearMockModules',
     'removeMockModule',

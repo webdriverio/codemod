@@ -239,7 +239,7 @@ module.exports = function transformer(file, api) {
 
     /**
      * transform:
-     * element.all(...).get(0)
+     * $$('...').get(0)
      * $$('...')[0]
      */
     root.find(j.CallExpression, {
