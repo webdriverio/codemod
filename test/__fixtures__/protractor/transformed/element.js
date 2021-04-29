@@ -8,6 +8,8 @@ browser.$('.parent');
     await (await this.deleteButton).setValue('Some text...');
     await (await this.deleteButton).setValue('Some text...');
     expect(await (await searchPage.noResultsMsg).isDisplayed()).toBe(true);
+    expect(await (await loginPage.errorMessage).isDisplayed()).toBe(true);
+    expect(await (await loginPage.errorMessages)[0].isDisplayed()).toBe(true);
 })();
 
 // Using getDriver to find the parent web element to find the cat li

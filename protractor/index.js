@@ -578,9 +578,16 @@ module.exports = function transformer(file, api) {
             /**
              * transform any other element command
              */
+            let object = path.value.callee.object
+            if (
+                path.value.callee.object.type === 'AwaitExpression' &&
+                path.parentPath.value.type === 'AwaitExpression'
+            ) {
+                object = object.argument
+            }
             return j.callExpression(
                 j.memberExpression(
-                    path.value.callee.object,
+                    object,
                     j.identifier(replaceCommands(command))
                 ),
                 path.value.arguments
