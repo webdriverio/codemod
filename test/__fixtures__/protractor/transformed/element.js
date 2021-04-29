@@ -6,6 +6,8 @@ browser.$('.parent');
 (async () => {
     await (await this.deleteButtons)[0].click();
     await (await this.deleteButton).setValue('Some text...');
+    await (await this.deleteButton).setValue('Some text...');
+    expect(await (await searchPage.noResultsMsg).isDisplayed()).toBe(true);
 })();
 
 // Using getDriver to find the parent web element to find the cat li

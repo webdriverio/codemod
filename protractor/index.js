@@ -24,7 +24,8 @@ const {
     getSelectorArgument,
     matchesSelectorExpression,
     replaceCommands,
-    parseConfigProperties
+    parseConfigProperties,
+    sanitizeAsyncCalls
 } = require('./utils')
 
 module.exports = function transformer(file, api) {
@@ -796,23 +797,16 @@ module.exports = function transformer(file, api) {
      * await (await friendPage.addnameBox).setValue('Some text...');
      */
     const ELEM_PROPS = ['length']
-    root.find(j.AwaitExpression, {
-        argument: { callee: { object: {
-            type: 'MemberExpression',
-            property: { type: 'Identifier' }
-        } } }
-    }).filter((path) => (
-        ELEMENT_COMMANDS.includes(path.value.argument.callee.property.name) ||
-        ELEM_PROPS.includes(path.value.argument.callee.property.name)
-    )).replaceWith((path) => j.awaitExpression(
-        j.callExpression(
-            j.memberExpression(
-                j.awaitExpression(path.value.argument.callee.object),
-                path.value.argument.callee.property
-            ),
-            path.value.argument.arguments
+    const filterElementCalls = ({ value: { expression: { argument } } }) => (
+        argument && argument.callee && argument.callee.property &&
+        (
+            ELEMENT_COMMANDS.includes(argument.callee.property.name) ||
+            ELEM_PROPS.includes(argument.callee.property.name)
         )
-    ))
+    )
+    root.find(j.ExpressionStatement)
+        .filter(filterElementCalls)
+        .forEach((path) => sanitizeAsyncCalls(j, j(path)))
 
     /**
      * transform lazy loaded elements calls in async context, e.g.
@@ -820,29 +814,19 @@ module.exports = function transformer(file, api) {
      * to:
      * await (await friendPage.addnameBox)[0].setValue('Some text...');
      */
-    root.find(j.AwaitExpression, {
-        argument: { callee: { object: {
-            type: 'MemberExpression',
-            property: { type: 'Literal' }
-        } } }
-    }).filter((path) => {
-        console.log('ÄYII', path.value.argument.callee.property.name);
-        return (
-            ELEMENT_COMMANDS.includes(path.value.argument.callee.property.name) ||
-            ELEM_PROPS.includes(path.value.argument.callee.property.name)
-        )
-    }).replaceWith((path) => j.awaitExpression(
-        j.callExpression(
-            j.memberExpression(
-                j.memberExpression(
-                    j.awaitExpression(path.value.argument.callee.object.object),
-                    path.value.argument.callee.object.property
-                ),
-                path.value.argument.callee.property
-            ),
-            path.value.argument.arguments
-        )
-    ))
+    root.find(j.ExpressionStatement)
+        .filter(filterElementCalls)
+        .forEach((path) => sanitizeAsyncCalls(j, j(path)))
+
+    /**
+     * transform lazy loaded elements calls in async context, e.g.
+     * expect(await searchPage.noResultsMsg.isDisplayed()).toBe(true);
+     * to:
+     * expect(await (await searchPage.noResultsMsg).isDisplayed()).toBe(true);
+     */
+    root.find(j.ExpressionStatement, {
+        expression: { callee: { object: { callee: { name: 'expect' } } } }
+    }).forEach((path) => sanitizeAsyncCalls(j, j(path)))
 
     compilers.update(j, root, autoCompileOpts)
     return root.toSource()

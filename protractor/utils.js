@@ -8,6 +8,7 @@ const {
     REPLACE_CONFIG_KEYS,
     IGNORED_CAPABILITIES
 } = require('./constants')
+const { ELEMENT_COMMANDS } = require('../common/constants')
 
 function isCustomStrategy (path) {
     return !SUPPORTED_SELECTORS.includes(
@@ -433,11 +434,57 @@ function parseCapabilities (caps) {
     return { rootLevelConfigs, parsedCaps }
 }
 
+const ELEM_PROPS = ['length']
+const filterElementCalls = ({ value: { argument: { callee: { property: { name } } } } }) => (
+    ELEMENT_COMMANDS.includes(name) ||
+    ELEM_PROPS.includes(name)
+)
+const filterFor = (type) => ({
+    argument: { callee: { object: {
+        type: 'MemberExpression',
+        property: { type }
+    } } }
+})
+function sanitizeAsyncCalls (j, root) {
+    root.find(j.AwaitExpression, filterFor('Identifier'))
+        .filter(filterElementCalls)
+        .replaceWith(({ value: { argument: { callee, arguments } } }) => (
+            j.awaitExpression(
+                j.callExpression(
+                    j.memberExpression(
+                        j.awaitExpression(callee.object),
+                        callee.property
+                    ),
+                    arguments
+                )
+            )
+        ))
+
+    root.find(j.AwaitExpression, filterFor('Literal'))
+        .filter(filterElementCalls)
+        .filter(({ value: { argument: { callee } } }) => callee.object.object.type === 'MemberExpression')
+        .replaceWith(({ value: { argument: { callee, arguments } } }) => (
+            j.awaitExpression(
+                j.callExpression(
+                    j.memberExpression(
+                        j.memberExpression(
+                            j.awaitExpression(callee.object.object),
+                            callee.object.property
+                        ),
+                        callee.property
+                    ),
+                    arguments
+                )
+            )
+        ))
+}
+
 module.exports = {
     isCustomStrategy,
     TransformError,
     getSelectorArgument,
     matchesSelectorExpression,
     replaceCommands,
-    parseConfigProperties
+    parseConfigProperties,
+    sanitizeAsyncCalls
 }
