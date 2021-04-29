@@ -10,7 +10,6 @@ class FriendsPage extends BasePage {
         this.friendName = text => { return element.all(by.cssContainingText('td.ng-binding', text)); };
         // results...
         this.rows = element.all(by.repeater('row in rows'));
-        this.names = element.all(by.repeater('row in rows').column('{{row}}'));
 
         this.url = 'angular/friends/';
         this.pageLoaded = this.isClickable($('h2.ng-binding'));

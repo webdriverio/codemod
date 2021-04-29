@@ -2,10 +2,8 @@ class FriendsPage extends BasePage {
     constructor() {
         super();
         this.friendName = text => { return $$("td.ng-binding=" + text); };
-        this.names = element.all(by.repeater('row in rows').column('{{row}}'));
 
         this.url = 'angular/friends/';
-        this.pageLoaded = this.isClickable($('h2.ng-binding'));
     }
 
     get searchBox() {
@@ -34,5 +32,9 @@ class FriendsPage extends BasePage {
 
     get rows() {
         return $$("*[ng-repeat=\"row in rows\"]");
+    }
+
+    get pageLoaded() {
+        return this.isClickable($('h2.ng-binding'));
     }
 }

@@ -185,3 +185,5 @@ exports.REPLACE_NAVIGATE_COMMANDS = {
 exports.UNSUPPORTED_CONFIG_OPTION_ERROR = '' +
     'The option "%s" is not supported in WebdriverIO. We advise to use ' +
     '%s instead. For more information on this configuration, see %s.'
+
+exports.SELECTOR_COMMANDS = ['$', '$$']

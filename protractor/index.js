@@ -6,6 +6,7 @@ const compilers = require('../common/compilers')
 const {
     SUPPORTED_SELECTORS,
     ELEMENT_COMMANDS,
+    SELECTOR_COMMANDS,
     UNSUPPORTED_COMMANDS,
     COMMANDS_TO_REMOVE,
     UNSUPPORTED_COMMAND_ADVICE,
@@ -753,7 +754,10 @@ module.exports = function transformer(file, api) {
             e.expression && e.expression.type === 'AssignmentExpression' &&
             e.expression.left.object && e.expression.left.object.type === 'ThisExpression' &&
             e.expression.left.property && e.expression.left.property.type === 'Identifier' &&
-            e.expression.right.callee && ['$', '$$'].includes(e.expression.right.callee.name)
+            (
+                e.expression.right.callee && SELECTOR_COMMANDS.includes(e.expression.right.callee.name) ||
+                e.expression.right.arguments && e.expression.right.arguments.find((arg) => arg.callee && SELECTOR_COMMANDS.includes(arg.callee.name))
+            )
         )
 
         for (const e of path.value.value.body.body.filter(isElementDeclaration)) {

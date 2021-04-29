@@ -23,6 +23,7 @@ const frameworkTests = {
         ['./failing_selector.js'],
         ['./failing_submit.js'],
         ['./failing_clone.js'],
+        ['./failing_column.js'],
         ['./failing_anythingProtractor.js']
     ],
     v7: [
