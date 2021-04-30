@@ -48,6 +48,9 @@ class FriendsPage extends BasePage {
         (await this.addnameBox).setValue(user);
         (await this.actualCount).setValue(pass);
         console.log(await this.searchBox);
+        browser.call(async () => {
+            (await this.actualCount).setValue(pass);
+        })
         return (await this.deleteButton).click();
     }
 

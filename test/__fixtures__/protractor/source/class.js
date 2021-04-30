@@ -25,6 +25,9 @@ class FriendsPage extends BasePage {
         this.addnameBox.setValue(user);
         this.actualCount.setValue(pass);
         console.log(this.searchBox);
+        browser.call(() => {
+            this.actualCount.setValue(pass);
+        })
         return this.deleteButton.click();
     }
 

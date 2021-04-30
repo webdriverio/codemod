@@ -25,7 +25,8 @@ const {
     matchesSelectorExpression,
     replaceCommands,
     parseConfigProperties,
-    sanitizeAsyncCalls
+    sanitizeAsyncCalls,
+    makeAsync
 } = require('./utils')
 
 module.exports = function transformer(file, api) {
@@ -846,18 +847,8 @@ module.exports = function transformer(file, api) {
         path.parentPath.value.type !== 'AwaitExpression' &&
         [...elementGetters.keys()].map((p) => p.name).includes(path.value.property.name)
     )).replaceWith((path) => {
-        j(path).closest(j.FunctionExpression).replaceWith(({ value, parentPath }) => {
-            if (
-                parentPath.value.kind === 'get' ||
-                parentPath.value.key.name === 'constructor' ||
-                parentPath.value.key.name.startsWith('async ')
-            ) {
-                return value
-            }
-
-            parentPath.value.key.name = `async ${parentPath.value.key.name}`
-            return value
-        })
+        j(path).closest(j.FunctionExpression).replaceWith(makeAsync)
+        j(path).closest(j.BlockStatement).replaceWith(makeAsync)
         return j.awaitExpression(path.value)
     })
 

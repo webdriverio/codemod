@@ -479,6 +479,26 @@ function sanitizeAsyncCalls (j, root) {
         ))
 }
 
+function makeAsync ({ value, parentPath }) {
+    if (
+        parentPath.value.key &&
+        (
+            parentPath.value.kind === 'get' ||
+            parentPath.value.key.name === 'constructor' ||
+            parentPath.value.key.name.startsWith('async ')
+        )
+    ) {
+        return value
+    }
+
+    parentPath.value.key
+        // FunctionExpression
+        ? (value.async = true)
+        // ArrowFunctionExpression
+        : (parentPath.value.async = true)
+    return value
+}
+
 module.exports = {
     isCustomStrategy,
     TransformError,
@@ -486,5 +506,6 @@ module.exports = {
     matchesSelectorExpression,
     replaceCommands,
     parseConfigProperties,
-    sanitizeAsyncCalls
+    sanitizeAsyncCalls,
+    makeAsync
 }
