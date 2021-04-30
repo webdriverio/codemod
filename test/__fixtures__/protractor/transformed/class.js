@@ -14,7 +14,7 @@ class FriendsPage extends BasePage {
         return $("*[ng-model=\"addName\"]");
     }
 
-    get addButton() {
+    get prevPageLink() {
         return $("button=+ add");
     }
 
@@ -56,5 +56,33 @@ class FriendsPage extends BasePage {
 
     foobar () {
         console.log(this.url)
+    }
+
+    /**
+     * Page back till we find the post title
+     * or run out of previous posts
+     * @param  {string} postTitle
+     * @return {bool}
+     */
+    async findPostByPaging(postTitle) {
+        return await this.postTitleExists(postTitle).then(async found => {
+            if(found) {
+                // found it!
+                return true;
+            } else {
+                // prevPageLink not displayed on first page
+                return (await this.prevPageLink).isExisting().then(async yup => {
+                    if(yup) {
+                        await (await this.prevPageLink).click();
+                        await this.findPostByPaging(postTitle); // call recursively till found...
+                        // wait for page to load...
+                        await this.loaded();
+                    } else {
+                        // post not found
+                        return false;
+                    }
+                });
+            }
+        });
     }
 }

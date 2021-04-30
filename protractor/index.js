@@ -848,7 +848,7 @@ module.exports = function transformer(file, api) {
         [...elementGetters.keys()].map((p) => p.name).includes(path.value.property.name)
     )).replaceWith((path) => {
         j(path).closest(j.FunctionExpression).replaceWith(makeAsync)
-        j(path).closest(j.BlockStatement).replaceWith(makeAsync)
+        j(path).closest(j.ArrowFunctionExpression).replaceWith(makeAsync)
         j(path).closest(j.MethodDefinition, {
             key: { name: 'constructor' }
         }).forEach((p) => {

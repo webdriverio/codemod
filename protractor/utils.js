@@ -494,11 +494,7 @@ function makeAsync ({ value, parentPath }) {
         return value
     }
 
-    parentPath.value.key
-        // FunctionExpression
-        ? (value.async = true)
-        // ArrowFunctionExpression
-        : (parentPath.value.async = true)
+    value.async = true
     return value
 }
 
