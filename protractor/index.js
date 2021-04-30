@@ -837,6 +837,30 @@ module.exports = function transformer(file, api) {
         expression: { callee: { object: { callee: { name: 'expect' } } } }
     }).forEach((path) => sanitizeAsyncCalls(j, j(path)))
 
+    /**
+     * find all `this` with properties we know are elements and make them async
+     */
+    root.find(j.MemberExpression, {
+        object: { type: 'ThisExpression' }
+    }).filter((path) => (
+        path.parentPath.value.type !== 'AwaitExpression' &&
+        [...elementGetters.keys()].map((p) => p.name).includes(path.value.property.name)
+    )).replaceWith((path) => {
+        j(path).closest(j.FunctionExpression).replaceWith(({ value, parentPath }) => {
+            if (
+                parentPath.value.kind === 'get' ||
+                parentPath.value.key.name === 'constructor' ||
+                parentPath.value.key.name.startsWith('async ')
+            ) {
+                return value
+            }
+
+            parentPath.value.key.name = `async ${parentPath.value.key.name}`
+            return value
+        })
+        return j.awaitExpression(path.value)
+    })
+
     compilers.update(j, root, autoCompileOpts)
     return root.toSource()
 }

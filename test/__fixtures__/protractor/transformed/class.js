@@ -37,4 +37,21 @@ class FriendsPage extends BasePage {
     get pageLoaded() {
         return this.isClickable($('h2.ng-binding'));
     }
+
+    /**
+     * non-angular login
+     * @param  {string} user
+     * @param  {string} pass
+     * @return {promise}
+     */
+    async login(user, pass) {
+        (await this.addnameBox).setValue(user);
+        (await this.actualCount).setValue(pass);
+        console.log(await this.searchBox);
+        return (await this.deleteButton).click();
+    }
+
+    foobar () {
+        console.log(this.url)
+    }
 }

@@ -14,4 +14,21 @@ class FriendsPage extends BasePage {
         this.url = 'angular/friends/';
         this.pageLoaded = this.isClickable($('h2.ng-binding'));
     }
+
+    /**
+     * non-angular login
+     * @param  {string} user
+     * @param  {string} pass
+     * @return {promise}
+     */
+    login(user, pass) {
+        this.addnameBox.setValue(user);
+        this.actualCount.setValue(pass);
+        console.log(this.searchBox);
+        return this.deleteButton.click();
+    }
+
+    foobar () {
+        console.log(this.url)
+    }
 }
