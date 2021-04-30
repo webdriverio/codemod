@@ -24,7 +24,8 @@ const frameworkTests = {
         ['./failing_submit.js'],
         ['./failing_clone.js'],
         ['./failing_column.js'],
-        ['./failing_anythingProtractor.js']
+        ['./failing_anythingProtractor.js'],
+        ['./failing_constructor.js']
     ],
     v7: [
         ['./spec.js', './spec.js'],

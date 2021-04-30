@@ -481,11 +481,14 @@ function sanitizeAsyncCalls (j, root) {
 
 function makeAsync ({ value, parentPath }) {
     if (
-        parentPath.value.key &&
+        parentPath.parentPath.value.kind === 'constructor' ||
         (
-            parentPath.value.kind === 'get' ||
-            parentPath.value.key.name === 'constructor' ||
-            parentPath.value.key.name.startsWith('async ')
+            parentPath.value.key &&
+            (
+                parentPath.value.kind === 'get' ||
+                parentPath.value.key.name === 'constructor' ||
+                parentPath.value.key.name.startsWith('async ')
+            )
         )
     ) {
         return value
