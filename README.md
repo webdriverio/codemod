@@ -32,6 +32,12 @@ $ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./e2e/
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./e2e/
 ```
 
+If you use TypeScript make sure you apply a different parser as parameter, e.g.:
+
+```sh
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor --parser=tsx ./e2e/*.ts
+```
+
 You can transform tests as well as config files, e.g.:
 
 ![Codemod Usage Example][example]
