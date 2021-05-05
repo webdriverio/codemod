@@ -26,6 +26,7 @@ const {
     replaceCommands,
     parseConfigProperties,
     sanitizeAsyncCalls,
+    failAsyncConstructor,
     makeAsync
 } = require('./utils')
 
@@ -848,18 +849,11 @@ module.exports = function transformer(file, api) {
     )).replaceWith((path) => {
         j(path).closest(j.FunctionExpression).replaceWith(makeAsync)
         j(path).closest(j.ArrowFunctionExpression).replaceWith(makeAsync)
-        j(path).closest(j.MethodDefinition, {
-            key: { name: 'constructor' }
-        }).forEach((p) => {
-            throw new TransformError('' +
-                `With "this.${path.value.property.name}" you are ` +
-                'trying to access an element within a constructor. Given that it ' +
-                'is not possible to run asynchronous code in this context, it ' +
-                'is advised to move this call into a method or getter function.',
-                path.value,
-                file
-            )
-        })
+        j(path).closest(j.ClassMethod).replaceWith(makeAsync)
+
+        const constructorFilter = { key: { name: 'constructor' } }
+        j(path).closest(j.MethodDefinition, constructorFilter).forEach(failAsyncConstructor)
+        j(path).closest(j.ClassMethod, constructorFilter).forEach(failAsyncConstructor)
         return j.awaitExpression(path.value)
     })
 

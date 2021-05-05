@@ -443,28 +443,40 @@ const filterElementCalls = ({ value: { argument: { callee: { property: { name } 
     ELEMENT_COMMANDS.includes(name) ||
     ELEM_PROPS.includes(name)
 )
-const filterFor = (type) => ({
+const filterFor = {
     argument: { callee: { object: {
-        type: 'MemberExpression',
-        property: { type }
+        type: 'MemberExpression'
     } } }
-})
+}
 function sanitizeAsyncCalls (j, root) {
-    root.find(j.AwaitExpression, filterFor('Identifier'))
+    root.find(j.AwaitExpression, filterFor)
         .filter(filterElementCalls)
         .replaceWith(({ value: { argument } }) => (
             j.awaitExpression(
                 j.callExpression(
                     j.memberExpression(
-                        j.awaitExpression(argument.callee.object),
+                        argument.callee.object.property.type === 'NumericLiteral'
+                            ? j.memberExpression(
+                                argument.callee.object.object,
+                                argument.callee.object.property,
+                                true,
+                            )
+                            : j.awaitExpression(argument.callee.object),
                         argument.callee.property
                     ),
-                    argument.arguments
+                    argument.arguments,
+                    true
                 )
             )
         ))
 
-    root.find(j.AwaitExpression, filterFor('Literal'))
+    root.find(j.AwaitExpression, filterFor)
+        .filter(({ value: { argument } }) => {
+            if (argument.callee.object) {
+                return argument.callee.object.property.type === 'NumericLiteral'
+            }
+            return true
+        })
         .filter(filterElementCalls)
         .filter(({ value: { argument: { callee } } }) => callee.object.object.type === 'MemberExpression')
         .replaceWith(({ value: { argument } }) => (
@@ -502,6 +514,17 @@ function makeAsync ({ value, parentPath }) {
     return value
 }
 
+function failAsyncConstructor (p) {
+    throw new TransformError('' +
+        `With "this.${path.value.property.name}" you are ` +
+        'trying to access an element within a constructor. Given that it ' +
+        'is not possible to run asynchronous code in this context, it ' +
+        'is advised to move this call into a method or getter function.',
+        path.value,
+        file
+    )
+}
+
 module.exports = {
     isCustomStrategy,
     TransformError,
@@ -510,5 +533,6 @@ module.exports = {
     replaceCommands,
     parseConfigProperties,
     sanitizeAsyncCalls,
-    makeAsync
+    makeAsync,
+    failAsyncConstructor
 }

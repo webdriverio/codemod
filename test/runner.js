@@ -5,6 +5,7 @@ const expect = require('expect')
 
 const Runner = require('jscodeshift/src/Runner')
 
+const supportedParsers = ['tsx', 'babel']
 const frameworkTests = {
     protractor: [
         ['./conf.js', './conf.js'],
@@ -79,15 +80,19 @@ async function runTest (framework, tests, parser = 'babel') {
 
 ;(async () => {
     const teardown = () => shell.rm('-r', path.join(__dirname, 'testdata'))
-    const testsToRun = process.argv.length === 3
+    const testsToRun = process.argv.length === 3 && Object.keys(frameworkTests).includes(process.argv[2])
         ? { [process.argv[2]]: frameworkTests[process.argv[2]] }
         : frameworkTests
+    const parserToRun = process.argv.length === 3 && supportedParsers.includes(process.argv[2])
+        ? [process.argv[2]]
+        : supportedParsers
     for (const [framework, tests] of Object.entries(testsToRun)) {
-        console.log('========================')
-        console.log(`Run tests for ${framework}`)
-        console.log('========================\n')
-        await runTest(framework, tests).finally(teardown)
-        await runTest(framework, tests, 'tsx').finally(teardown)
+        for (const parser of parserToRun) {
+            console.log('================================================')
+            console.log(`Run tests for ${framework} using ${parser} parser`)
+            console.log('================================================\n')
+            await runTest(framework, tests, parser).finally(teardown)
+        }
     }
 })().then(
     () => console.log('Tests passed ✅'),
