@@ -34,8 +34,12 @@ class TransformError extends Error {
     }
 }
 
-function isLiteral (val) {
+function isStringLiteral (val) {
     return ['Literal', 'StringLiteral'].includes(val.type)
+}
+
+function isNumericalLiteral (val) {
+    return ['Literal', 'NumericLiteral'].includes(val.type)
 }
 
 function getSelectorArgument (j, path, callExpr, file) {
@@ -49,7 +53,7 @@ function getSelectorArgument (j, path, callExpr, file) {
             file
         )
     } else if (bySelector === 'id') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`#${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '#', cooked: '#' }, false)
@@ -58,7 +62,7 @@ function getSelectorArgument (j, path, callExpr, file) {
             ])
         ]
     } else if (bySelector === 'model') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`*[ng-model="${arg.value}"]`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*[ng-model="', cooked: '*[ng-model="' }, false),
@@ -68,7 +72,7 @@ function getSelectorArgument (j, path, callExpr, file) {
             ])
         ]
     } else if (bySelector === 'repeater') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`*[ng-repeat="${arg.value}"]`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*[ng-repeat="', cooked: '*[ng-repeat="' }, false),
@@ -84,7 +88,7 @@ function getSelectorArgument (j, path, callExpr, file) {
 
         if (text.regex) {
             throw new TransformError('this codemod does not support RegExp in cssContainingText', path.value, file)
-        } else if (isLiteral(text)) {
+        } else if (isStringLiteral(text)) {
             return [j.literal(`${arg.value}=${text.value}`)]
         } else if (text.type === 'Identifier') {
             return [
@@ -100,21 +104,21 @@ function getSelectorArgument (j, path, callExpr, file) {
     } else if (bySelector === 'xpath' || bySelector === 'tagName' || bySelector === 'js') {
         return [arg]
     } else if (bySelector === 'linkText') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '=', cooked: '=' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'partialLinkText') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`*=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*=', cooked: '*=' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'name') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`*[name="${arg.value}"]`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*[name="', cooked: '*[name="' }, false),
@@ -122,14 +126,14 @@ function getSelectorArgument (j, path, callExpr, file) {
             ], [arg])
         ]
     } else if (bySelector === 'className') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`.${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '.', cooked: '.' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'options') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`select[ng-options="${arg.value}"] option`)
             : j.templateLiteral([
                 j.templateElement({ raw: 'select[ng-options="', cooked: 'select[ng-options="' }, false),
@@ -137,14 +141,14 @@ function getSelectorArgument (j, path, callExpr, file) {
             ], [arg])
         ]
     } else if (bySelector === 'buttonText') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`button=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: 'button=', cooked: 'button=' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'partialButtonText') {
-        return [isLiteral(arg)
+        return [isStringLiteral(arg)
             ? j.literal(`button*=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: 'button*=', cooked: 'button*=' }, false)
@@ -450,18 +454,31 @@ const filterFor = {
 }
 function sanitizeAsyncCalls (j, root) {
     root.find(j.AwaitExpression, filterFor)
+        .filter(({ value: { argument: { callee: { object } } } }) => (
+            (
+                object.object.type === 'MemberExpression' ||
+                object.property.type !== 'Literal'
+            )
+            && object.object.type !== 'AwaitExpression'
+        ))
         .filter(filterElementCalls)
         .replaceWith(({ value: { argument } }) => (
             j.awaitExpression(
                 j.callExpression(
                     j.memberExpression(
-                        argument.callee.object.property.type === 'NumericLiteral'
+                        isNumericalLiteral(argument.callee.object.property)
                             ? j.memberExpression(
-                                argument.callee.object.object,
+                                j.awaitExpression(argument.callee.object.object),
                                 argument.callee.object.property,
-                                true,
+                                true
                             )
-                            : j.awaitExpression(argument.callee.object),
+                            : j.awaitExpression(
+                                j.memberExpression(
+                                    argument.callee.object.object,
+                                    argument.callee.object.property,
+                                    isNumericalLiteral(argument.callee.object.property)
+                                )
+                            ),
                         argument.callee.property
                     ),
                     argument.arguments,

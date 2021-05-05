@@ -5,7 +5,7 @@ const expect = require('expect')
 
 const Runner = require('jscodeshift/src/Runner')
 
-const supportedParsers = ['tsx', 'babel']
+const supportedParsers = ['babel', 'tsx']
 const frameworkTests = {
     protractor: [
         ['./conf.js', './conf.js'],
