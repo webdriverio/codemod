@@ -57,8 +57,7 @@ exports.remove = function removeCompilers (j, root) {
     })
     root.find(j.ExpressionStatement, {
         expression: { callee: {
-            callee: { name: 'require' },
-            arguments: [{ type: 'Literal' }]
+            callee: { name: 'require' }
         } }
     }).filter((path) => (
         Object.keys(COMPILER_OPTS_MAPPING).includes(path.value.expression.callee.arguments[0].value)
@@ -92,7 +91,7 @@ exports.update = function (j, root, autoCompileOpts) {
      * update config with compiler opts
      */
     let wasReplaced = false
-    root.find(j.Property)
+    root.find(j.ObjectProperty)
         .filter((path) => (
             path.value.key && (
                 path.value.key.name === 'capabilities' ||

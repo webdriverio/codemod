@@ -39,7 +39,7 @@ const frameworkTests = {
 
 let error
 
-async function runTest (framework, tests) {
+async function runTest (framework, tests, parser = 'babel') {
     shell.cp(
         '-r',
         path.join(__dirname, '__fixtures__', framework, 'source'),
@@ -52,7 +52,8 @@ async function runTest (framework, tests) {
             path.resolve(path.join(__dirname, '..', framework, 'index.js')),
             [srcFile],
             {
-                verbose: 2
+                verbose: 2,
+                parser
             }
         )
 
@@ -86,6 +87,7 @@ async function runTest (framework, tests) {
         console.log(`Run tests for ${framework}`)
         console.log('========================\n')
         await runTest(framework, tests).finally(teardown)
+        await runTest(framework, tests, 'tsx').finally(teardown)
     }
 })().then(
     () => console.log('Tests passed ✅'),

@@ -34,6 +34,10 @@ class TransformError extends Error {
     }
 }
 
+function isLiteral (val) {
+    return ['Literal', 'StringLiteral'].includes(val.type)
+}
+
 function getSelectorArgument (j, path, callExpr, file) {
     const bySelector = callExpr.callee.property.name
     const arg = callExpr.arguments[0]
@@ -45,7 +49,7 @@ function getSelectorArgument (j, path, callExpr, file) {
             file
         )
     } else if (bySelector === 'id') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`#${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '#', cooked: '#' }, false)
@@ -54,7 +58,7 @@ function getSelectorArgument (j, path, callExpr, file) {
             ])
         ]
     } else if (bySelector === 'model') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`*[ng-model="${arg.value}"]`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*[ng-model="', cooked: '*[ng-model="' }, false),
@@ -64,7 +68,7 @@ function getSelectorArgument (j, path, callExpr, file) {
             ])
         ]
     } else if (bySelector === 'repeater') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`*[ng-repeat="${arg.value}"]`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*[ng-repeat="', cooked: '*[ng-repeat="' }, false),
@@ -80,7 +84,7 @@ function getSelectorArgument (j, path, callExpr, file) {
 
         if (text.regex) {
             throw new TransformError('this codemod does not support RegExp in cssContainingText', path.value, file)
-        } else if (text.type === 'Literal') {
+        } else if (isLiteral(text)) {
             return [j.literal(`${arg.value}=${text.value}`)]
         } else if (text.type === 'Identifier') {
             return [
@@ -96,21 +100,21 @@ function getSelectorArgument (j, path, callExpr, file) {
     } else if (bySelector === 'xpath' || bySelector === 'tagName' || bySelector === 'js') {
         return [arg]
     } else if (bySelector === 'linkText') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '=', cooked: '=' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'partialLinkText') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`*=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*=', cooked: '*=' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'name') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`*[name="${arg.value}"]`)
             : j.templateLiteral([
                 j.templateElement({ raw: '*[name="', cooked: '*[name="' }, false),
@@ -118,14 +122,14 @@ function getSelectorArgument (j, path, callExpr, file) {
             ], [arg])
         ]
     } else if (bySelector === 'className') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`.${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: '.', cooked: '.' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'options') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`select[ng-options="${arg.value}"] option`)
             : j.templateLiteral([
                 j.templateElement({ raw: 'select[ng-options="', cooked: 'select[ng-options="' }, false),
@@ -133,14 +137,14 @@ function getSelectorArgument (j, path, callExpr, file) {
             ], [arg])
         ]
     } else if (bySelector === 'buttonText') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`button=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: 'button=', cooked: 'button=' }, false)
             ], [arg])
         ]
     } else if (bySelector === 'partialButtonText') {
-        return [arg.type === 'Literal'
+        return [isLiteral(arg)
             ? j.literal(`button*=${arg.value}`)
             : j.templateLiteral([
                 j.templateElement({ raw: 'button*=', cooked: 'button*=' }, false)

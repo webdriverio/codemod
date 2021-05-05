@@ -253,7 +253,8 @@ module.exports = function transformer(file, api) {
     })
     .replaceWith((path) => j.memberExpression(
         path.value.callee.object,
-        path.value.arguments[0]
+        path.value.arguments[0],
+        true
     ))
 
     /**
@@ -570,7 +571,8 @@ module.exports = function transformer(file, api) {
                     j.memberExpression(
                         j.memberExpression(
                             path.value.callee.object.callee.object,
-                            path.value.callee.object.arguments[0]
+                            path.value.callee.object.arguments[0],
+                            true
                         ),
                         j.identifier(replaceCommands(command))
                     ),
@@ -761,7 +763,7 @@ module.exports = function transformer(file, api) {
      * transform element declarations in class constructors into getters
      */
     const elementGetters = new Map()
-    root.find(j.MethodDefinition, { kind: 'constructor' }).replaceWith((path) => {
+    root.find(j.ClassMethod, { key: { name: 'constructor' } }).replaceWith((path) => {
         const isElementDeclaration = (e) => (
             e.expression && e.expression.type === 'AssignmentExpression' &&
             e.expression.left.object && e.expression.left.object.type === 'ThisExpression' &&
@@ -772,19 +774,16 @@ module.exports = function transformer(file, api) {
             )
         )
 
-        for (const e of path.value.value.body.body.filter(isElementDeclaration)) {
+        for (const e of path.value.body.body.filter(isElementDeclaration)) {
             elementGetters.set(e.expression.left.property, e.expression.right)
         }
 
         return [
-            j.methodDefinition(
+            j.classMethod(
                 path.value.kind,
                 path.value.key,
-                j.functionExpression(
-                    path.value.value.id,
-                    path.value.value.params,
-                    j.blockStatement(path.value.value.body.body.filter((e) => !isElementDeclaration(e)))
-                )
+                path.value.params,
+                j.blockStatement(path.value.body.body.filter((e) => !isElementDeclaration(e)))
             ),
             ...[...elementGetters.entries()].map(([elemName, object]) => j.methodDefinition(
                 'get',
