@@ -2,7 +2,7 @@ const { paramCase } = require('param-case')
 
 const { COMMAND_TRANSFORMS, COMMANDS_WITHOUT_FIRST_PARAM, SERVICE_PROPS, SERVICE_PROP_MAPPING } = require('./constants')
 
-module.exports = function transformer(file, api) {
+module.exports = function transformer(file, api, opts) {
     const j = api.jscodeshift;
     const root = j(file.source);
 
@@ -98,7 +98,7 @@ module.exports = function transformer(file, api) {
             })
     }
 
-    root.find(j.Property, {
+    root.find(opts.parser === 'babel' ? j.Property : j.ObjectProperty, {
         key: { name: 'services' }
     }).replaceWith((path) => j.property(
         'init',

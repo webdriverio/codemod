@@ -1,9 +1,9 @@
 const compilers = require('../common/compilers')
 
-module.exports = function transformer(file, api) {
+module.exports = function transformer(file, api, opts) {
     const j = api.jscodeshift;
     const root = j(file.source);
-    const autoCompileOpts = compilers.remove(j, root)
+    const autoCompileOpts = compilers.remove(j, root, opts)
 
     /**
      * transforms imports from `require('cucumber')` to `require('@cucumber/cucumber')`
@@ -28,6 +28,6 @@ module.exports = function transformer(file, api) {
         )
     ))
 
-    compilers.update(j, root, autoCompileOpts)
+    compilers.update(j, root, autoCompileOpts, opts)
     return root.toSource()
 }

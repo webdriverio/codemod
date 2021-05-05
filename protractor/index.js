@@ -26,10 +26,11 @@ const {
     replaceCommands,
     parseConfigProperties,
     sanitizeAsyncCalls,
+    failAsyncConstructor,
     makeAsync
 } = require('./utils')
 
-module.exports = function transformer(file, api) {
+module.exports = function transformer(file, api, opts) {
     const j = api.jscodeshift;
     const root = j(file.source);
     j.file = file
@@ -91,7 +92,7 @@ module.exports = function transformer(file, api) {
         )
     })
 
-    const autoCompileOpts = compilers.remove(j, root)
+    const autoCompileOpts = compilers.remove(j, root, opts)
 
     /**
      * remove all protractor import declarations
@@ -253,7 +254,8 @@ module.exports = function transformer(file, api) {
     })
     .replaceWith((path) => j.memberExpression(
         path.value.callee.object,
-        path.value.arguments[0]
+        path.value.arguments[0],
+        true
     ))
 
     /**
@@ -570,7 +572,8 @@ module.exports = function transformer(file, api) {
                     j.memberExpression(
                         j.memberExpression(
                             path.value.callee.object.callee.object,
-                            path.value.callee.object.arguments[0]
+                            path.value.callee.object.arguments[0],
+                            true
                         ),
                         j.identifier(replaceCommands(command))
                     ),
@@ -761,7 +764,7 @@ module.exports = function transformer(file, api) {
      * transform element declarations in class constructors into getters
      */
     const elementGetters = new Map()
-    root.find(j.MethodDefinition, { kind: 'constructor' }).replaceWith((path) => {
+    const setGetters = (path) => {
         const isElementDeclaration = (e) => (
             e.expression && e.expression.type === 'AssignmentExpression' &&
             e.expression.left.object && e.expression.left.object.type === 'ThisExpression' &&
@@ -772,20 +775,16 @@ module.exports = function transformer(file, api) {
             )
         )
 
-        for (const e of path.value.value.body.body.filter(isElementDeclaration)) {
+        const body = path.value.body || path.value.value.body
+        const kind = path.value.kind || path.value.value.kind
+        const key = path.value.key || path.value.value.key
+        const params = path.value.params || path.value.value.params
+        for (const e of body.body.filter(isElementDeclaration)) {
             elementGetters.set(e.expression.left.property, e.expression.right)
         }
 
         return [
-            j.methodDefinition(
-                path.value.kind,
-                path.value.key,
-                j.functionExpression(
-                    path.value.value.id,
-                    path.value.value.params,
-                    j.blockStatement(path.value.value.body.body.filter((e) => !isElementDeclaration(e)))
-                )
-            ),
+            j.classMethod(kind, key, params, j.blockStatement(body.body.filter((e) => !isElementDeclaration(e)))),
             ...[...elementGetters.entries()].map(([elemName, object]) => j.methodDefinition(
                 'get',
                 elemName,
@@ -798,7 +797,9 @@ module.exports = function transformer(file, api) {
                 )
             ))
         ]
-    })
+    }
+    root.find(j.ClassMethod, { key: { name: 'constructor' } }).replaceWith(setGetters)
+    root.find(j.MethodDefinition, { key: { name: 'constructor' } }).replaceWith(setGetters)
 
     /**
      * transform lazy loaded element calls in async context, e.g.
@@ -849,21 +850,14 @@ module.exports = function transformer(file, api) {
     )).replaceWith((path) => {
         j(path).closest(j.FunctionExpression).replaceWith(makeAsync)
         j(path).closest(j.ArrowFunctionExpression).replaceWith(makeAsync)
-        j(path).closest(j.MethodDefinition, {
-            key: { name: 'constructor' }
-        }).forEach((p) => {
-            throw new TransformError('' +
-                `With "this.${path.value.property.name}" you are ` +
-                'trying to access an element within a constructor. Given that it ' +
-                'is not possible to run asynchronous code in this context, it ' +
-                'is advised to move this call into a method or getter function.',
-                path.value,
-                file
-            )
-        })
+        j(path).closest(j.ClassMethod).replaceWith(makeAsync)
+        const constructorFilter = { key: { name: 'constructor' } }
+        const throwConstructorError = () => failAsyncConstructor(path, file)
+        j(path).closest(j.MethodDefinition, constructorFilter).forEach(throwConstructorError)
+        j(path).closest(j.ClassMethod, constructorFilter).forEach(throwConstructorError)
         return j.awaitExpression(path.value)
     })
 
-    compilers.update(j, root, autoCompileOpts)
+    compilers.update(j, root, autoCompileOpts, opts)
     return root.toSource()
 }
