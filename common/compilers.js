@@ -3,13 +3,15 @@ const {
     COMPILER_OPTS_MAPPING
 } = require('./constants')
 
-exports.remove = function removeCompilers (j, root) {
+const { isStringLiteral } = require('./utils')
+
+exports.remove = function removeCompilers (j, root, opts) {
     const autoCompileOpts = {}
 
     /**
      * remove compiler requires
      */
-    root.find(j.Property)
+    root.find(opts.parser === 'babel' ? j.Property : j.ObjectProperty)
         .filter((path) => (
             path.value.key && (
                 path.value.key.name === 'require' ||
@@ -23,7 +25,7 @@ exports.remove = function removeCompilers (j, root) {
                 j.arrayExpression(path.value.value.elements.filter((value) => {
                     let importName
 
-                    if (value.type === 'Literal') {
+                    if (isStringLiteral(value)) {
                         importName = value.value
                     } else if (value.type === 'ArrayExpression') {
                         importName = value.elements[0].value
@@ -86,26 +88,24 @@ exports.remove = function removeCompilers (j, root) {
     return autoCompileOpts
 }
 
-exports.update = function (j, root, autoCompileOpts) {
+exports.update = function (j, root, autoCompileOpts, opts) {
     /**
      * update config with compiler opts
      */
-    let wasReplaced = false
-    root.find(j.ObjectProperty)
+    let wasInserted = false
+    root.find(opts.parser === 'babel' ? j.Property : j.ObjectProperty)
         .filter((path) => (
             path.value.key && (
                 path.value.key.name === 'capabilities' ||
                 path.value.key.name === 'framework'
             )
         ))
-        .replaceWith((path) => {
-            if (wasReplaced) {
-                return path.value
+        .forEach((path) => {
+            if (wasInserted) {
+                return
             }
-
-            wasReplaced = true
-            return [
-                path.value,
+            wasInserted = true
+            path.parentPath.value.push(
                 ...(Object.keys(autoCompileOpts).length
                     ? [j.objectProperty(
                         j.identifier('autoCompileOpts'),
@@ -124,6 +124,6 @@ exports.update = function (j, root, autoCompileOpts) {
                     )]
                     : []
                 )
-            ]
+            )
         })
 }

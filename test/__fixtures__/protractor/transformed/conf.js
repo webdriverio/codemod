@@ -26,18 +26,6 @@ exports.config = {
         }
     }],
 
-    autoCompileOpts: {
-        autoCompile: true,
-
-        tsNodeOpts: {
-            project: require('path').join(__dirname, './tsconfig.e2e.json')
-        },
-
-        babelOpts: {
-            presets: [ 'es2015' ]
-        }
-    },
-
     capabilities: [{
         'browserName': 'chrome',
         protocol: "http",
@@ -99,5 +87,17 @@ exports.config = {
 
     protocol: "https",
     port: 443,
-    hostname: "api.kobiton.com"
+    hostname: "api.kobiton.com",
+
+    autoCompileOpts: {
+        autoCompile: true,
+
+        tsNodeOpts: {
+            project: require('path').join(__dirname, './tsconfig.e2e.json')
+        },
+
+        babelOpts: {
+            presets: [ 'es2015' ]
+        }
+    }
 };

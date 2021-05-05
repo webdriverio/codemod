@@ -1,6 +1,21 @@
 exports.config = {
     framework: 'jasmine',
 
+    cucumberOpts: {
+        requireModule: [() => {
+            console.log('foo');
+            console.log('bar');
+        }]
+    },
+
+    jasmineOpts: {
+        requires: []
+    },
+
+    mochaOpts: {
+        require: [async function () {}]
+    },
+
     autoCompileOpts: {
         autoCompile: true,
 
@@ -16,20 +31,5 @@ exports.config = {
         babelOpts: {
             ignore: []
         }
-    },
-
-    cucumberOpts: {
-        requireModule: [() => {
-            console.log('foo');
-            console.log('bar');
-        }]
-    },
-
-    jasmineOpts: {
-        requires: []
-    },
-
-    mochaOpts: {
-        require: [async function () {}]
     }
 }

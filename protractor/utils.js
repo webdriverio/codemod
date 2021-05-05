@@ -2,6 +2,11 @@ const url = require('url')
 const { format } = require('util')
 
 const {
+    isStringLiteral,
+    isNumericalLiteral
+} = require('../common/utils')
+
+const {
     IGNORED_CONFIG_PROPERTIES,
     UNSUPPORTED_CONFIG_OPTION_ERROR,
     UNSUPPORTED_SELECTOR_STRATEGIES,
@@ -32,14 +37,6 @@ class TransformError extends Error {
         )
         this.name = this.constructor.name
     }
-}
-
-function isStringLiteral (val) {
-    return ['Literal', 'StringLiteral'].includes(val.type)
-}
-
-function isNumericalLiteral (val) {
-    return ['Literal', 'NumericLiteral'].includes(val.type)
 }
 
 function getSelectorArgument (j, path, callExpr, file) {

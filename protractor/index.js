@@ -30,7 +30,7 @@ const {
     makeAsync
 } = require('./utils')
 
-module.exports = function transformer(file, api) {
+module.exports = function transformer(file, api, opts) {
     const j = api.jscodeshift;
     const root = j(file.source);
     j.file = file
@@ -92,7 +92,7 @@ module.exports = function transformer(file, api) {
         )
     })
 
-    const autoCompileOpts = compilers.remove(j, root)
+    const autoCompileOpts = compilers.remove(j, root, opts)
 
     /**
      * remove all protractor import declarations
@@ -858,6 +858,6 @@ module.exports = function transformer(file, api) {
         return j.awaitExpression(path.value)
     })
 
-    compilers.update(j, root, autoCompileOpts)
+    compilers.update(j, root, autoCompileOpts, opts)
     return root.toSource()
 }
