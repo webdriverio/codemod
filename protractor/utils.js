@@ -514,7 +514,7 @@ function makeAsync ({ value, parentPath }) {
     return value
 }
 
-function failAsyncConstructor (p) {
+function failAsyncConstructor (path, file) {
     throw new TransformError('' +
         `With "this.${path.value.property.name}" you are ` +
         'trying to access an element within a constructor. Given that it ' +

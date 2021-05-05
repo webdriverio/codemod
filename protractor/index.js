@@ -764,7 +764,7 @@ module.exports = function transformer(file, api) {
      * transform element declarations in class constructors into getters
      */
     const elementGetters = new Map()
-    root.find(j.ClassMethod, { key: { name: 'constructor' } }).replaceWith((path) => {
+    const setGetters = (path) => {
         const isElementDeclaration = (e) => (
             e.expression && e.expression.type === 'AssignmentExpression' &&
             e.expression.left.object && e.expression.left.object.type === 'ThisExpression' &&
@@ -775,17 +775,16 @@ module.exports = function transformer(file, api) {
             )
         )
 
-        for (const e of path.value.body.body.filter(isElementDeclaration)) {
+        const body = path.value.body || path.value.value.body
+        const kind = path.value.kind || path.value.value.kind
+        const key = path.value.key || path.value.value.key
+        const params = path.value.params || path.value.value.params
+        for (const e of body.body.filter(isElementDeclaration)) {
             elementGetters.set(e.expression.left.property, e.expression.right)
         }
 
         return [
-            j.classMethod(
-                path.value.kind,
-                path.value.key,
-                path.value.params,
-                j.blockStatement(path.value.body.body.filter((e) => !isElementDeclaration(e)))
-            ),
+            j.classMethod(kind, key, params, j.blockStatement(body.body.filter((e) => !isElementDeclaration(e)))),
             ...[...elementGetters.entries()].map(([elemName, object]) => j.methodDefinition(
                 'get',
                 elemName,
@@ -798,7 +797,9 @@ module.exports = function transformer(file, api) {
                 )
             ))
         ]
-    })
+    }
+    root.find(j.ClassMethod, { key: { name: 'constructor' } }).replaceWith(setGetters)
+    root.find(j.MethodDefinition, { key: { name: 'constructor' } }).replaceWith(setGetters)
 
     /**
      * transform lazy loaded element calls in async context, e.g.
@@ -850,10 +851,10 @@ module.exports = function transformer(file, api) {
         j(path).closest(j.FunctionExpression).replaceWith(makeAsync)
         j(path).closest(j.ArrowFunctionExpression).replaceWith(makeAsync)
         j(path).closest(j.ClassMethod).replaceWith(makeAsync)
-
         const constructorFilter = { key: { name: 'constructor' } }
-        j(path).closest(j.MethodDefinition, constructorFilter).forEach(failAsyncConstructor)
-        j(path).closest(j.ClassMethod, constructorFilter).forEach(failAsyncConstructor)
+        const throwConstructorError = () => failAsyncConstructor(path, file)
+        j(path).closest(j.MethodDefinition, constructorFilter).forEach(throwConstructorError)
+        j(path).closest(j.ClassMethod, constructorFilter).forEach(throwConstructorError)
         return j.awaitExpression(path.value)
     })
 
