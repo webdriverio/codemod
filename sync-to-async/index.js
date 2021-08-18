@@ -1,9 +1,15 @@
 const compilers = require('../common/compilers')
 
 const wrapWithAsync = path => {
-    if (path.parent.value.type !== "AwaitExpression") return {
-        type: 'AwaitExpression',
-        argument: path.value
+    if (path.parent.value.type !== "AwaitExpression") {
+        if (path.parent.property && path.parent.property.type === "Identifier") {
+            // add () to parent on chained calls
+            path.parent.extra.parenthesized = true
+        }
+        return {
+            type: 'AwaitExpression',
+            argument: path.value
+        }
     }
     return path.value
 };
