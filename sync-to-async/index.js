@@ -14,6 +14,7 @@ const wrapWithAsync = path => {
     return path.value
 };
 
+
 module.exports = function transformer(file, api, opts) {
     const j = api.jscodeshift;
     const root = j(file.source);
@@ -34,12 +35,9 @@ module.exports = function transformer(file, api, opts) {
     /**
      * transforms $ and $$ calls to async
      */
-    root.find(j.CallExpression, { callee: { name: '$' } }).replaceWith(
-        wrapWithAsync
-    )
-    root.find(j.CallExpression, { callee: { name: '$$' } }).replaceWith(
-        wrapWithAsync
-    )
+    root.find(j.CallExpression, { callee: { name: '$' } }).replaceWith(wrapWithAsync)
+    root.find(j.CallExpression, { callee: { name: '$$' } }).replaceWith(wrapWithAsync)
+    root.find(j.CallExpression, { callee: { type: 'MemberExpression' }}).replaceWith(wrapWithAsync)
 
     compilers.update(j, root, autoCompileOpts, opts)
     return root.toSource()
