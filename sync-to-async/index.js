@@ -37,7 +37,7 @@ module.exports = function transformer(file, api, opts) {
      */
     root.find(j.CallExpression, { callee: { name: '$' } }).replaceWith(wrapWithAsync)
     root.find(j.CallExpression, { callee: { name: '$$' } }).replaceWith(wrapWithAsync)
-    root.find(j.CallExpression, { callee: { type: 'MemberExpression' }}).replaceWith(wrapWithAsync)
+    root.find(j.CallExpression, { callee: { type: 'MemberExpression', object: { type: 'AwaitExpression' } }}).replaceWith(wrapWithAsync)
 
     compilers.update(j, root, autoCompileOpts, opts)
     return root.toSource()
