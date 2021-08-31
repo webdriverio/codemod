@@ -25,6 +25,7 @@ browser.executeScript(function() {console.error('error from test'); });
 
 ;(async () => {
     const EC = protractor.ExpectedConditions;
+    global.EC = protractor.ExpectedConditions;
     var button = $('#xyz');
     var isClickable = EC.elementToBeClickable(button);
 

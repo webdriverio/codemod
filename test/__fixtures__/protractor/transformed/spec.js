@@ -22,6 +22,7 @@ browser.execute(function() {console.error('error from test'); });
 
 (async () => {
     const EC = require("wdio-wait-for");
+    global.EC = require("wdio-wait-for");
     var button = $('#xyz');
     var isClickable = EC.elementToBeClickable(button);
 

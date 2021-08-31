@@ -730,6 +730,20 @@ module.exports = function transformer(file, api, opts) {
             )
         ]
     ))
+    root.find(j.ExpressionStatement, {
+        expression: {
+            right: {
+                object: { name: 'protractor' },
+                property: { name: 'ExpectedConditions' }
+            }
+        }
+    }).replaceWith((path) => j.expressionStatement(
+        j.assignmentExpression(
+            '=',
+            path.value.expression.left,
+            wdioWaitForImport
+        )
+    ))
 
     /**
      * transform expected conditions not put into a var
