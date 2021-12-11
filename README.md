@@ -30,6 +30,8 @@ $ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./e2e/
 # e.g. to transform Protractor code:
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./e2e/
+# e.g. to tranform from sync to async
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/sync-to-async ./e2e/
 ```
 
 If you use TypeScript make sure you apply a different parser as parameter, e.g.:
