@@ -37,11 +37,18 @@ module.exports = function transformer(file, api, opts) {
 		});
 	});
 
-
 	// Transforms element commands and methods to add await to the beginning
 	root.find(j.CallExpression).replaceWith(path => {
 		if(excludeAsyncWrap(path)) {
 			return path.value;
+		}
+
+		// Look for direct match to METHODS
+		if(path.value.callee.name && METHODS.includes(path.value.callee.name)) {
+			return {
+				type     : `AwaitExpression`,
+				argument : path.value
+			}
 		}
 
 		const element_check = path.value.callee.property;
