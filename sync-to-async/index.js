@@ -3,7 +3,8 @@ const { ELEMENT_COMMANDS } = require(`../common/constants`);
 const {
 	EXTRA_COMMANDS,
 	METHODS,
-	HOOKS
+	HOOKS,
+	JS_BUILT_IN,
  } = require(`./constants`);
 
 const excludeAsyncWrap = path => {
@@ -19,6 +20,28 @@ module.exports = function transformer(file, api, opts) {
 	const j                 = api.jscodeshift;
 	const root              = j(file.source);
 	const auto_compile_opts = compilers.remove(j, root, opts);
+
+	// Convert forEach to regular for loops
+	root.find(j.CallExpression, {
+		callee : {
+			property : {
+				name : "forEach"
+			}
+		}
+	})
+	.replaceWith(path => {
+		// Handles foo.forEach() and [1,2].forEach()
+		const expression = path.value.callee.object.name ? j.identifier(path.value.callee.object.name) : j.arrayExpression(path.value.callee.object.elements);
+
+		return j.forOfStatement(
+		  j.variableDeclaration(
+				"const",
+				path.value.arguments[0].params
+		  ),
+		  expression,
+		  path.value.arguments[0].body
+		)
+	});
 
 	// Transforms all hooks/it's parameter to async
 	HOOKS.forEach(name => {
@@ -37,32 +60,13 @@ module.exports = function transformer(file, api, opts) {
 		});
 	});
 
-	// Transforms element commands and methods to add await to the beginning
-	root.find(j.CallExpression).replaceWith(path => {
+	// Handle $$
+	root.find(j.CallExpression, {
+		callee : {
+			name : `$$`,
+		}
+	}).replaceWith(path => {
 		if(excludeAsyncWrap(path)) {
-			return path.value;
-		}
-
-		// Look for direct match to METHODS
-		if(path.value.callee.name && METHODS.includes(path.value.callee.name)) {
-			return {
-				type     : `AwaitExpression`,
-				argument : path.value
-			}
-		}
-
-		const element_check = path.value.callee.property;
-		const method_check  = path.value.callee && path.value.callee.object && path.value.callee.object.callee;
-		const extra_check   = path.value.callee && path.value.callee.object && path.value.callee.object.object && path.value.callee.object.object.callee;
-
-		if(!element_check && !method_check && !extra_check) {
-			return path.value;
-		}
-
-		const element_command = element_check ? path.value.callee.property.name : null;
-		const method          = method_check ? path.value.callee.object.callee.name : (extra_check ? path.value.callee.object.object.callee.name : null);
-
-		if(![...ELEMENT_COMMANDS, ...EXTRA_COMMANDS].includes(element_command) && !METHODS.includes(method)) {
 			return path.value;
 		}
 
@@ -75,6 +79,7 @@ module.exports = function transformer(file, api, opts) {
 	// Add await to all calls to class methods
 	// This will handle chained methods
 	// E.g. LoginPage.login()
+	// @todo This might be too generic. It will pick up methods that don't need await on them
 	root.find(j.CallExpression, {
 		callee : {
 			type : `MemberExpression`,
@@ -85,6 +90,11 @@ module.exports = function transformer(file, api, opts) {
 	}).replaceWith(path => {
 		if(excludeAsyncWrap(path)) {
 			return path.value;
+		}
+
+		// Exclude any built in javascipt functions
+		if(JS_BUILT_IN.includes(path.value.callee.property.name)) {
+			return path.value
 		}
 
 		return {
