@@ -1,10 +1,3 @@
-exports.METHODS = [
-	`expect`,
-	`expectChai`,
-	`$`,
-	`$$`
-];
-
 exports.HOOKS = [
 	`it`,
 	`before`,
@@ -12,17 +5,14 @@ exports.HOOKS = [
 	`test`,
 ];
 
-// Any extra commands can go here
-// Things added with addCommand is an example
 exports.EXTRA_COMMANDS = [
-	`safeClick`,
-	`safeSetValue`,
-	`safeGetValue`,
-	`safeGetText`,
-	`waitForNotExist`,
-	`waitForNotDisplayed`,
-	`waitForNotEnabled`,
-	`fastSetValue`,
+	`waitUntil`,
+	`map`,
+];
+
+// Exclude any custom objects
+exports.EXCLUDE_OBJECTS = [
+	`Helpers`,
 ];
 
 exports.JS_BUILT_IN = [

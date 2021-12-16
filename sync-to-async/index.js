@@ -1,10 +1,9 @@
-const compilers            = require(`../common/compilers`);
-const { ELEMENT_COMMANDS } = require(`../common/constants`);
+const compilers = require(`../common/compilers`);
 const {
 	EXTRA_COMMANDS,
-	METHODS,
 	HOOKS,
 	JS_BUILT_IN,
+	EXCLUDE_OBJECTS,
  } = require(`./constants`);
 
 const excludeAsyncWrap = path => {
@@ -34,12 +33,12 @@ module.exports = function transformer(file, api, opts) {
 		const expression = path.value.callee.object.name ? j.identifier(path.value.callee.object.name) : j.arrayExpression(path.value.callee.object.elements);
 
 		return j.forOfStatement(
-		  j.variableDeclaration(
+			j.variableDeclaration(
 				"const",
 				path.value.arguments[0].params
-		  ),
-		  expression,
-		  path.value.arguments[0].body
+			),
+			expression,
+			path.value.arguments[0].body
 		)
 	});
 
@@ -55,6 +54,21 @@ module.exports = function transformer(file, api, opts) {
 			if(path.value.arguments[index] && path.value.arguments[index].type === `ArrowFunctionExpression`) {
 				path.value.arguments[index].async = true
 			}
+
+			return path.value;
+		});
+	});
+
+	// Transform waitUnitl, map, etc.
+	EXTRA_COMMANDS.forEach(name => {
+		root.find(j.CallExpression, {
+			callee : {
+				property : {
+					name,
+				}
+			}
+		}).replaceWith(path => {
+			path.value.arguments[0].async = true;
 
 			return path.value;
 		});
@@ -94,7 +108,12 @@ module.exports = function transformer(file, api, opts) {
 
 		// Exclude any built in javascipt functions
 		if(JS_BUILT_IN.includes(path.value.callee.property.name)) {
-			return path.value
+			return path.value;
+		}
+
+		// Exclude custom objects
+		if(EXCLUDE_OBJECTS.includes(path.value.callee.object.name)) {
+			return path.value;
 		}
 
 		return {
@@ -112,7 +131,51 @@ module.exports = function transformer(file, api, opts) {
 		return path.value;
 	});
 
+	// Set all function definitions to async
+	root.find(j.FunctionDeclaration).replaceWith(path => {
+		path.value.async = true;
+
+		return path.value;
+	});
+
+	// Remove awaits from inside browser.execute that were added from the above transform
+	root.find(j.CallExpression, {
+		callee : {
+			type : `MemberExpression`,
+			property : {
+				type : `Identifier`,
+				name : `execute`
+			}
+		}
+	}).replaceWith(path => {
+		const blocks = [];
+		path.value.arguments[0].body.body.forEach(body => {
+			blocks.push(
+				j.expressionStatement(
+					j.callExpression(
+						body.expression.argument,
+						[]
+					)
+				)
+			)
+		});
+
+		return j.expressionStatement(
+			j.callExpression(
+				path.value.callee,
+				[
+					j.arrowFunctionExpression(
+						path.value.arguments[0].params,
+						j.blockStatement(blocks)
+					)
+				]
+			)
+		);
+	});
+
 	compilers.update(j, root, auto_compile_opts, opts);
 
-	return root.toSource();
+	return root.toSource({
+		useTabs : true,
+	});
 }
