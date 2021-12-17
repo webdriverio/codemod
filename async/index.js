@@ -149,13 +149,11 @@ module.exports = function transformer(file, api, opts) {
 		}
 	}).replaceWith(path => {
 		const blocks = [];
+
 		path.value.arguments[0].body.body.forEach(body => {
 			blocks.push(
 				j.expressionStatement(
-					j.callExpression(
-						body.expression.argument,
-						[]
-					)
+					body.expression.argument
 				)
 			)
 		});
@@ -175,7 +173,5 @@ module.exports = function transformer(file, api, opts) {
 
 	compilers.update(j, root, auto_compile_opts, opts);
 
-	return root.toSource({
-		useTabs : true,
-	});
+	return root.toSource();
 }

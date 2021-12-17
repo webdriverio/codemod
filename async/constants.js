@@ -12,6 +12,7 @@ exports.EXTRA_COMMANDS = [
 
 // Exclude any custom objects
 exports.EXCLUDE_OBJECTS = [
+	`document`,
 	`Helpers`,
 ];
 

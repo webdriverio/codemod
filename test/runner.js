@@ -35,6 +35,10 @@ const frameworkTests = {
     v6: [
         ['./spec.js', './spec.js'],
         ['./conf.js', './conf.js']
+    ],
+    async: [
+        ['./spec.js', './spec.js'],
+        ['./page.js', './page.js']
     ]
 }
 
