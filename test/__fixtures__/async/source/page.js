@@ -1,18 +1,18 @@
 class Foo extends Page {
     open() {
-        browser.url('https://webdriver.io')
+        browser.url('https://webdriver.io');
     }
 
     login() {
-        this.username.setValue('foo')
-        this.password.setValue('bar')
-        this.loginButton.click()
+        this.username.setValue('foo');
+        this.password.setValue('bar');
+        this.loginButton.click();
     }
 
     foo() {
-        return $('.test')
+        return $('.test');
     }
 
-    get username() { return $('foo') }
-    get password() { return $('bar') }
+    get username() { return $('foo'); }
+    get password() { return $('bar'); }
 }

@@ -32,10 +32,20 @@ module.exports = function transformer(file, api, opts) {
 		// Handles foo.forEach() and [1,2].forEach()
 		const expression = path.value.callee.object.name ? j.identifier(path.value.callee.object.name) : j.arrayExpression(path.value.callee.object.elements);
 
+		// Array of objects or default to anything else
+		const declarator = path.value.arguments[0].params[0].properties ? [
+			j.variableDeclarator(
+				j.objectPattern(
+					path.value.arguments[0].params[0].properties
+				),
+				null
+			)
+		] : path.value.arguments[0].params;
+
 		return j.forOfStatement(
 			j.variableDeclaration(
 				"const",
-				path.value.arguments[0].params
+				declarator
 			),
 			expression,
 			path.value.arguments[0].body
