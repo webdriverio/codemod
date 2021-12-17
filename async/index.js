@@ -131,6 +131,16 @@ module.exports = function transformer(file, api, opts) {
 		return path.value;
 	});
 
+	// Set all method definitions to async. excludes "get", "set"
+	// Needed for tsx
+	root.find(j.ClassMethod, {
+		kind : `method`
+	}).replaceWith(path => {
+		path.value.async = true;
+
+		return path.value;
+	});
+
 	// Set all function definitions to async
 	root.find(j.FunctionDeclaration).replaceWith(path => {
 		path.value.async = true;
