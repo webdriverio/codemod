@@ -27,9 +27,13 @@ describe('Test describe', () => {
     it('testing loops', () => {
         [1,2,3].forEach(num => {
             $('.foo').setValue(num)
-        })
+        });
 
-        [1,2,3].map(num => {
+        [
+            1,
+            2,
+            3
+        ].map(num => {
             $('.foo').setValue(num)
         })
     })

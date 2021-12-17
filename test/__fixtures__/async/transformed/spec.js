@@ -27,7 +27,13 @@ describe('Test describe', () => {
     it('testing loops', async () => {
         for (const num of [1, 2, 3]) {
             await $('.foo').setValue(num)
-        }[(1, 2, 3)].map(async num => {
+        };
+
+        [
+            1,
+            2,
+            3
+        ].map(async num => {
             await $('.foo').setValue(num)
         })
     })
