@@ -29,18 +29,67 @@ module.exports = function transformer(file, api, opts) {
 		}
 	})
 	.replaceWith(path => {
-		// Handles foo.forEach() and [1,2].forEach()
-		const expression = path.value.callee.object.name ? j.identifier(path.value.callee.object.name) : j.arrayExpression(path.value.callee.object.elements);
+		const args = path.value.arguments[0];
+		const body = args.body;
 
-		// Array of objects or default to anything else
-		const declarator = path.value.arguments[0].params[0].properties ? [
-			j.variableDeclarator(
-				j.objectPattern(
-					path.value.arguments[0].params[0].properties
-				),
-				null
+		let expression      = null;
+		let block_statement = null;
+		let declarator      = null;
+
+		// foo.forEach()
+		if(path.value.callee.object.name) {
+			expression = j.identifier(path.value.callee.object.name);
+		}
+		// [1,3].forEach()
+		else if(path.value.callee.object.elements) {
+			expression = j.arrayExpression(path.value.callee.object.elements);
+		}
+		// foo.bar.forEach()
+		else {
+			expression = j.memberExpression(path.value.callee.object.object, path.value.callee.object.property)
+		}
+
+		// foo.forEach(bar());
+		if(!body) {
+			block_statement = j.blockStatement(
+				[j.expressionStatement(path.value.arguments[0])]
+			);
+		}
+		// General forEach
+		else if(body.type === `BlockStatement`) {
+			block_statement = body;
+		}
+		// foo.forEach(num => num) single line forEach
+		else {
+			block_statement = j.blockStatement(
+				[j.expressionStatement(body)]
 			)
-		] : path.value.arguments[0].params;
+		}
+
+		// foo.forEach(bar());
+		if(!args.params) {
+			declarator = [
+				j.variableDeclarator(
+					j.identifier(`foo`),
+					null
+				)
+			]
+		}
+		// Array of objects
+		else if(args.params[0].properties) {
+			declarator = [
+				j.variableDeclarator(
+					j.objectPattern(
+						args.params[0].properties
+					),
+					null
+				)
+			]
+		}
+		// Anything else
+		else {
+			declarator = args.params;
+		}
 
 		return j.forOfStatement(
 			j.variableDeclaration(
@@ -48,8 +97,8 @@ module.exports = function transformer(file, api, opts) {
 				declarator
 			),
 			expression,
-			path.value.arguments[0].body
-		)
+			block_statement
+		);
 	});
 
 	// Transforms all hooks/it's parameter to async
@@ -175,7 +224,7 @@ module.exports = function transformer(file, api, opts) {
 				j.expressionStatement(
 					body.expression.argument
 				)
-			)
+			);
 		});
 
 		return j.expressionStatement(

@@ -14,9 +14,12 @@ exports.EXTRA_COMMANDS = [
 exports.EXCLUDE_OBJECTS = [
 	`document`,
 	`Helpers`,
+	`Helper`,
+	`moment`,
 ];
 
 exports.JS_BUILT_IN = [
+	`includes`,
 	`constructor`,
 	`toExponential`,
 	`toFixed`,

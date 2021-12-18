@@ -50,6 +50,14 @@ describe('Test describe', () => {
             $('.foo').setValue(foo);
             $('.bar').setValue(bar);
         });
+
+        foo.bar.forEach(num => {
+            $('.bar').click();
+        });
+
+        foo.forEach(num => $('.bar').setValue('aaa'));
+
+        button_data.forEach(checkAuthPage(true));
     });
 });
 

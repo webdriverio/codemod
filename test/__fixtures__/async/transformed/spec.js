@@ -50,6 +50,18 @@ describe('Test describe', () => {
             await $('.foo').setValue(foo);
             await $('.bar').setValue(bar);
         };
+
+        for (const num of foo.bar) {
+            await $('.bar').click();
+        };
+
+        for (const num of foo) {
+            await $('.bar').setValue('aaa');
+        };
+
+        for (const foo of button_data) {
+            checkAuthPage(true);
+        };
     });
 });
 
