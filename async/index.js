@@ -29,12 +29,19 @@ module.exports = function transformer(file, api, opts) {
 		}
 	})
 	.replaceWith(path => {
-		const args = path.value.arguments[0];
-		const body = args.body;
+		const args             = path.value.arguments[0];
+		const body             = args.body;
+		const placeholder      = `codemod_placeholder`;
+		const left_placeholder = `left_placeholder`;
 
 		let expression      = null;
 		let block_statement = null;
 		let declarator      = null;
+
+		// Check if we need to add an extra varaible above the for loop
+		// Cases when $$() appears
+		// AST explorer saw this as an error .. for await (const foo of $$(`.bar`))
+		let placeholder_variable = false;
 
 		// foo.forEach()
 		if(path.value.callee.object.name) {
@@ -45,8 +52,13 @@ module.exports = function transformer(file, api, opts) {
 			expression = j.arrayExpression(path.value.callee.object.elements);
 		}
 		// foo.bar.forEach()
-		else {
+		else if(path.value.callee.object.object) {
 			expression = j.memberExpression(path.value.callee.object.object, path.value.callee.object.property)
+		}
+		// $$(`.foo`).forEach() or abc.abs(1,6).forEach()
+		else {
+			placeholder_variable = true;
+			expression     = j.identifier(placeholder);
 		}
 
 		// foo.forEach(bar());
@@ -76,7 +88,7 @@ module.exports = function transformer(file, api, opts) {
 			]
 		}
 		// Array of objects
-		else if(args.params[0].properties) {
+		else if(args.params[0] && args.params[0].properties) {
 			declarator = [
 				j.variableDeclarator(
 					j.objectPattern(
@@ -91,14 +103,35 @@ module.exports = function transformer(file, api, opts) {
 			declarator = args.params;
 		}
 
-		return j.forOfStatement(
+		const for_statement = j.forOfStatement(
 			j.variableDeclaration(
 				"const",
-				declarator
+				declarator.length ? declarator : [j.identifier(left_placeholder)]
 			),
 			expression,
 			block_statement
 		);
+
+		if(placeholder_variable) {
+			const varaible_declaration = j.variableDeclaration(
+				'let',
+				[
+					j.variableDeclarator(
+						j.identifier(placeholder),
+						path.value.callee.object
+					)
+				]
+			);
+
+			return j.blockStatement(
+				[
+					varaible_declaration,
+					for_statement
+				]
+			);
+		}
+
+		return for_statement;
 	});
 
 	// Transforms all hooks/it's parameter to async
@@ -211,21 +244,46 @@ module.exports = function transformer(file, api, opts) {
 	root.find(j.CallExpression, {
 		callee : {
 			type : `MemberExpression`,
+			object : {
+				type : `Identifier`,
+				name : `browser`,
+			},
 			property : {
 				type : `Identifier`,
 				name : `execute`
-			}
+			},
+
 		}
 	}).replaceWith(path => {
-		const blocks = [];
+		const body             = path.value.arguments[0].body;
+		const blocks           = [];
+		const secondary_params = [];
 
-		path.value.arguments[0].body.body.forEach(body => {
-			blocks.push(
-				j.expressionStatement(
-					body.expression.argument
-				)
-			);
-		});
+		if(body.body) {
+			path.value.arguments[0].body.body.forEach(body => {
+				if(body.expression && body.expression.argument) {
+					blocks.push(
+						j.expressionStatement(
+							body.expression.argument
+						)
+					);
+				}
+				// Variable declarations
+				else {
+					blocks.push(body);
+				}
+			});
+		}
+		// No block body
+		// browser.execute(() => foo())
+		else {
+			blocks.push(j.expressionStatement(body.argument));
+		}
+
+		// Start at index 1 because the first param is the callback
+		for(let i = 1; i < path.value.arguments.length; i++) {
+			secondary_params.push(path.value.arguments[i]);
+		}
 
 		return j.expressionStatement(
 			j.callExpression(
@@ -234,7 +292,8 @@ module.exports = function transformer(file, api, opts) {
 					j.arrowFunctionExpression(
 						path.value.arguments[0].params,
 						j.blockStatement(blocks)
-					)
+					),
+					...secondary_params
 				]
 			)
 		);

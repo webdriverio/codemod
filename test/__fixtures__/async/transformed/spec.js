@@ -22,6 +22,22 @@ describe('Test describe', () => {
             document.querySelector('.foo').click();
             $('.foo').click();
         });;
+
+        await browser.execute(foo => {
+            $(`.`).click();
+            document.querySelector(`.foo`).click();
+        }, `.foo`);;
+
+        await browser.execute(() => {
+            $(`.foo`).click();
+        });;
+
+        await browser.execute((date, time) => {
+            const $date = $(`[data-title="Date Field"] .field-input.newdate`);
+            const $time = $(`[data-title="Time Field"] .field-input.time`);
+            $date.val(date);
+            $time.val(time);
+        }, date, time);;
     });
 
     it('testing loops', async () => {
@@ -61,6 +77,22 @@ describe('Test describe', () => {
 
         for (const foo of button_data) {
             checkAuthPage(true);
+        };
+
+        {
+            let codemod_placeholder = await $$(`.foo`);
+
+            for (const num of codemod_placeholder) {
+                console.log(`bar`);
+            }
+        };
+
+        {
+            let codemod_placeholder = abc.slice(2, 6);
+
+            for (const left_placeholder of codemod_placeholder) {
+                console.log(`foo`);
+            }
         };
     });
 });

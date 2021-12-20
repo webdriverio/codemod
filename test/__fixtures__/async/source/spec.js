@@ -22,6 +22,20 @@ describe('Test describe', () => {
             document.querySelector('.foo').click();
             $('.foo').click();
         });
+
+        browser.execute(foo => {
+            $(`.`).click();
+            document.querySelector(`.foo`).click();
+        }, `.foo`);
+
+        browser.execute(() => $(`.foo`).click());
+
+        browser.execute((date, time) => {
+            const $date = $(`[data-title="Date Field"] .field-input.newdate`);
+            const $time = $(`[data-title="Time Field"] .field-input.time`);
+            $date.val(date);
+            $time.val(time);
+        }, date, time);
     });
 
     it('testing loops', () => {
@@ -58,6 +72,14 @@ describe('Test describe', () => {
         foo.forEach(num => $('.bar').setValue('aaa'));
 
         button_data.forEach(checkAuthPage(true));
+
+        $$(`.foo`).forEach(num => {
+            console.log(`bar`);
+        });
+
+        abc.slice(2, 6).forEach(() => {
+            console.log(`foo`);
+        });
     });
 });
 
