@@ -7,12 +7,33 @@ const {
  } = require(`./constants`);
 
 const excludeAsyncWrap = path => {
-	const excludes    = [`AwaitExpression`, `ReturnStatement`];
+	const excludes    = [`AwaitExpression`, `ReturnStatement`, `ForOfStatement`];
 	const parent_type = path.parent.value.type;
 
 	if(excludes.includes(parent_type)) {
 		return true;
 	}
+}
+
+// Checks if a parent node is browser.execute
+const insideExecute = parent => {
+	if(
+		parent &&
+		parent.value &&
+		parent.value.expression &&
+		parent.value.expression.argument &&
+		parent.value.expression.argument.callee &&
+		parent.value.expression.argument.callee.object.name === `browser` &&
+		parent.value.expression.argument.callee.property.name === `execute`
+	) {
+			return true;
+	}
+
+	if(!parent.parentPath) {
+		return false;
+	}
+
+	return insideExecute(parent.parentPath);
 }
 
 module.exports = function transformer(file, api, opts) {
@@ -31,8 +52,9 @@ module.exports = function transformer(file, api, opts) {
 	.replaceWith(path => {
 		const args             = path.value.arguments[0];
 		const body             = args.body;
-		const placeholder      = `codemod_placeholder`;
-		const left_placeholder = `left_placeholder`;
+		const random           = Math.floor(Math.random() * 10000);
+		const placeholder      = `codemod_placeholder_${random}`;
+		const left_placeholder = `left_placeholder_${random}`;
 
 		let expression      = null;
 		let block_statement = null;
@@ -58,7 +80,7 @@ module.exports = function transformer(file, api, opts) {
 		// $$(`.foo`).forEach() or abc.abs(1,6).forEach()
 		else {
 			placeholder_variable = true;
-			expression     = j.identifier(placeholder);
+			expression           = j.identifier(placeholder);
 		}
 
 		// foo.forEach(bar());
@@ -123,7 +145,7 @@ module.exports = function transformer(file, api, opts) {
 				]
 			);
 
-			return j.blockStatement(
+			return j.program(
 				[
 					varaible_declaration,
 					for_statement
@@ -160,7 +182,11 @@ module.exports = function transformer(file, api, opts) {
 				}
 			}
 		}).replaceWith(path => {
-			path.value.arguments[0].async = true;
+			// Don't do
+			// [...Array(num_users)].map(() => ({ ...options }));
+			if(![`ObjectExpression`].includes(path.value.arguments[0].body.type)) {
+				path.value.arguments[0].async = true;
+			}
 
 			return path.value;
 		});
@@ -185,7 +211,7 @@ module.exports = function transformer(file, api, opts) {
 	// Add await to all calls to class methods
 	// This will handle chained methods
 	// E.g. LoginPage.login()
-	// @todo This might be too generic. It will pick up methods that don't need await on them
+	// @todo This could be too generic. It will pick up methods that don't need await on them
 	root.find(j.CallExpression, {
 		callee : {
 			type : `MemberExpression`,
@@ -194,7 +220,7 @@ module.exports = function transformer(file, api, opts) {
 			}
 		}
 	}).replaceWith(path => {
-		if(excludeAsyncWrap(path)) {
+		if(excludeAsyncWrap(path) || insideExecute(path.parentPath)) {
 			return path.value;
 		}
 
@@ -213,6 +239,24 @@ module.exports = function transformer(file, api, opts) {
 			argument : path.value
 		}
 	});
+
+	/*
+	// foo();
+	root.find(j.CallExpression, {
+		callee : {
+			type : `Identifier`,
+		}
+	}).replaceWith(path => {
+		if(excludeAsyncWrap(path) || [`$`, `$$`].includes(path.value.callee.name) {
+			return path.value;
+		}
+
+		return {
+			type     : `AwaitExpression`,
+			argument : path.value
+		}
+	});
+	*/
 
 	// Set all method definitions to async. excludes "get", "set"
 	root.find(j.MethodDefinition, {
@@ -238,65 +282,6 @@ module.exports = function transformer(file, api, opts) {
 		path.value.async = true;
 
 		return path.value;
-	});
-
-	// Remove awaits from inside browser.execute that were added from the above transform
-	root.find(j.CallExpression, {
-		callee : {
-			type : `MemberExpression`,
-			object : {
-				type : `Identifier`,
-				name : `browser`,
-			},
-			property : {
-				type : `Identifier`,
-				name : `execute`
-			},
-
-		}
-	}).replaceWith(path => {
-		const body             = path.value.arguments[0].body;
-		const blocks           = [];
-		const secondary_params = [];
-
-		if(body.body) {
-			path.value.arguments[0].body.body.forEach(body => {
-				if(body.expression && body.expression.argument) {
-					blocks.push(
-						j.expressionStatement(
-							body.expression.argument
-						)
-					);
-				}
-				// Variable declarations
-				else {
-					blocks.push(body);
-				}
-			});
-		}
-		// No block body
-		// browser.execute(() => foo())
-		else {
-			blocks.push(j.expressionStatement(body.argument));
-		}
-
-		// Start at index 1 because the first param is the callback
-		for(let i = 1; i < path.value.arguments.length; i++) {
-			secondary_params.push(path.value.arguments[i]);
-		}
-
-		return j.expressionStatement(
-			j.callExpression(
-				path.value.callee,
-				[
-					j.arrowFunctionExpression(
-						path.value.arguments[0].params,
-						j.blockStatement(blocks)
-					),
-					...secondary_params
-				]
-			)
-		);
 	});
 
 	compilers.update(j, root, auto_compile_opts, opts);

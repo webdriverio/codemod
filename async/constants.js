@@ -16,6 +16,11 @@ exports.EXCLUDE_OBJECTS = [
 	`Helpers`,
 	`Helper`,
 	`moment`,
+	`queryString`,
+	`query_string`,
+	`Array`,
+	`Number`,
+	`String`,
 ];
 
 exports.JS_BUILT_IN = [

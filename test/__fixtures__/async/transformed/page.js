@@ -13,6 +13,10 @@ class Foo extends Page {
         return $('.test');
     }
 
+    static async generateUsers(num_users, options = {}) {
+        return [...Array(num_users)].map(() => ({ ...options }));
+    }
+
     get username() { return $('foo'); }
     get password() { return $('bar'); }
 }

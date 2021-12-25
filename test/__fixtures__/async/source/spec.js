@@ -5,13 +5,22 @@ describe('Test describe', () => {
         Authenticate.login();
     });
 
-    it('testing general commands', () => {
+    it('general commands', () => {
         $('.foo').click();
+
         browser.pause(5000);
+
         browser.waitUntil(() => {
             return $('.bar').getText() === 'foo';
         });
 
+        foo();
+
+        current_date = moment(current_date, `MM/DD/YYYY`).add(1, `days`).format(`MM/DD/YYYY`);
+        dates.push(moment(current_date, `MM/DD/YYYY`).format(format_to_return));
+    });
+
+    it(`browser.execute`, () => {
         const arr = $$('.foo');
 
         browser.execute(() => {
@@ -36,9 +45,11 @@ describe('Test describe', () => {
             $date.val(date);
             $time.val(time);
         }, date, time);
+
+        browser.execute(this.setHash(options.hash));
     });
 
-    it('testing loops', () => {
+    it('loops', () => {
         [1,2,3].forEach(num => {
             $('.foo').setValue(num);
         });
@@ -72,14 +83,6 @@ describe('Test describe', () => {
         foo.forEach(num => $('.bar').setValue('aaa'));
 
         button_data.forEach(checkAuthPage(true));
-
-        $$(`.foo`).forEach(num => {
-            console.log(`bar`);
-        });
-
-        abc.slice(2, 6).forEach(() => {
-            console.log(`foo`);
-        });
     });
 });
 
