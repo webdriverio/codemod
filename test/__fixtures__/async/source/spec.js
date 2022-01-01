@@ -18,6 +18,12 @@ describe('Test describe', () => {
 
         current_date = moment(current_date, `MM/DD/YYYY`).add(1, `days`).format(`MM/DD/YYYY`);
         dates.push(moment(current_date, `MM/DD/YYYY`).format(format_to_return));
+
+        foobar.map(String);
+
+        expect(1).toBe(1);
+
+        const foobar = () => {}
     });
 
     it(`browser.execute`, () => {
@@ -47,6 +53,29 @@ describe('Test describe', () => {
         }, date, time);
 
         browser.execute(this.setHash(options.hash));
+
+        const foo = browser.execute(() => {
+            $(`.foo`).click();
+        });
+
+        function bar() {
+            return browser.execute(() => {
+                $(`.foo`).click();
+            });
+        }
+
+        const results = browser.execute(() => {
+            const bar = 123;
+
+            (function foo() {
+                const testing = 456;
+                foo();
+            })()
+        });
+
+        testing = browser.execute(() => {
+            $(`.foo`).click();
+        });
     });
 
     it('loops', () => {
@@ -76,13 +105,33 @@ describe('Test describe', () => {
             $('.bar').setValue(bar);
         });
 
-        foo.bar.forEach(num => {
-            $('.bar').click();
-        });
-
         foo.forEach(num => $('.bar').setValue('aaa'));
 
         button_data.forEach(checkAuthPage(true));
+
+        [`foo`].forEach((word, index) => {
+            console.log(word, index);
+        });
+
+        foo.forEach((word) => {
+            console.log(word);
+        });
+
+        foo.forEach((word, index) => {
+            console.log(word, index);
+        });
+
+        foo.bar.forEach((word, index) => {
+            console.log(word, index);
+        });
+
+        foo.bar.forEach(word => {
+            console.log(word);
+        });
+
+        [`foo`].forEach(num => {
+            console.log(word);
+        });
     });
 });
 
@@ -90,3 +139,11 @@ function foo() {
     const bar = 123;
     $('.foo').setValue(bar);
 }
+
+const getColumns = (foo, bar) => {
+	$(`.123`).setValue(123);
+}
+
+const foobar = () => ({
+    foo : 123
+});

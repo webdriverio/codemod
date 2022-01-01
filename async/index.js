@@ -6,6 +6,7 @@ const {
 	EXCLUDE_OBJECTS,
  } = require(`./constants`);
 
+// Exclude await if already await'ed, a return line or for of loop
 const excludeAsyncWrap = path => {
 	const excludes    = [`AwaitExpression`, `ReturnStatement`, `ForOfStatement`];
 	const parent_type = path.parent.value.type;
@@ -15,16 +16,68 @@ const excludeAsyncWrap = path => {
 	}
 }
 
+// Don't await certain functions and methods
+const excludeAsyncCustom = test_object => {
+	if(!test_object) {
+		return false;
+	}
+
+	// Add to this array when more come up
+	if([`moment`].includes(test_object.name)) {
+		return true;
+	}
+
+	return excludeAsyncCustom(test_object.callee || test_object.object);
+}
+
 // Checks if a parent node is browser.execute
 const insideExecute = parent => {
+	if(!parent || !parent.value) {
+		return false;
+	}
+
+	const value = parent.value;
+
 	if(
-		parent &&
-		parent.value &&
-		parent.value.expression &&
-		parent.value.expression.argument &&
-		parent.value.expression.argument.callee &&
-		parent.value.expression.argument.callee.object.name === `browser` &&
-		parent.value.expression.argument.callee.property.name === `execute`
+		// Plain browser.execute without the return value being assigned
+		(
+			value.expression &&
+			value.expression.argument &&
+			value.expression.argument.callee &&
+			value.expression.argument.callee.object &&
+			value.expression.argument.callee.object.name === `browser` &&
+			value.expression.argument.callee.property.name === `execute`
+		) ||
+		// browser.execute with variable declarator
+		// e.g. const foo = browser.execute();
+		(
+			value.type === `VariableDeclarator` &&
+			value.init &&
+			value.init.argument &&
+			value.init.argument.callee &&
+			value.init.argument.callee.object &&
+			value.init.argument.callee.object.name === `browser` &&
+			value.init.argument.callee.property.name === `execute`
+		) ||
+		// browser.execute with return
+		(
+			value.type === `ReturnStatement` &&
+			value.argument &&
+			value.argument.callee &&
+			value.argument.callee.object &&
+			value.argument.callee.object.name === `browser` &&
+			value.argument.callee.property.name === `execute`
+		) ||
+		// With assignemnt but not declarating a variable
+		// e.g. foo = browser.execute();
+		(
+			value.type === `AssignmentExpression` &&
+			value.right.argument &&
+			value.right.argument.callee &&
+			value.right.argument.callee.object &&
+			value.right.argument.callee.object.name === `browser` &&
+			value.right.argument.callee.property.name === `execute`
+		)
 	) {
 			return true;
 	}
@@ -52,6 +105,7 @@ module.exports = function transformer(file, api, opts) {
 	.replaceWith(path => {
 		const args             = path.value.arguments[0];
 		const body             = args.body;
+		const multiple_params  = args.params && args.params.length > 1;
 		const random           = Math.floor(Math.random() * 10000);
 		const placeholder      = `codemod_placeholder_${random}`;
 		const left_placeholder = `left_placeholder_${random}`;
@@ -67,20 +121,65 @@ module.exports = function transformer(file, api, opts) {
 
 		// foo.forEach()
 		if(path.value.callee.object.name) {
-			expression = j.identifier(path.value.callee.object.name);
+			if(multiple_params) {
+				expression = j.callExpression(
+					j.memberExpression(
+						path.value.callee.object,
+						j.identifier(`entries`)
+					),
+					[]
+				);
+			}
+			else {
+				expression = j.identifier(path.value.callee.object.name);
+			}
 		}
 		// [1,3].forEach()
 		else if(path.value.callee.object.elements) {
-			expression = j.arrayExpression(path.value.callee.object.elements);
+			if(multiple_params) {
+				expression = j.callExpression(
+					j.memberExpression(
+						j.arrayExpression(path.value.callee.object.elements),
+						j.identifier(`entries`)
+					),
+					[]
+				);
+			}
+			else {
+				expression = j.arrayExpression(path.value.callee.object.elements);
+			}
 		}
 		// foo.bar.forEach()
+		// @todo This could recurse to go deeper but not going to worry about it now
 		else if(path.value.callee.object.object) {
-			expression = j.memberExpression(path.value.callee.object.object, path.value.callee.object.property)
+			if(multiple_params) {
+				expression = j.callExpression(
+					j.memberExpression(
+						path.value.callee.object,
+						j.identifier(`entries`)
+					),
+					[]
+				);
+			}
+			else {
+				expression = j.memberExpression(path.value.callee.object.object, path.value.callee.object.property);
+			}
 		}
 		// $$(`.foo`).forEach() or abc.abs(1,6).forEach()
 		else {
 			placeholder_variable = true;
-			expression           = j.identifier(placeholder);
+			if(multiple_params) {
+				expression = j.callExpression(
+					j.memberExpression(
+						j.identifier(placeholder),
+						j.identifier(`entries`)
+					),
+					[]
+				);
+			}
+			else {
+				expression = j.identifier(placeholder);
+			}
 		}
 
 		// foo.forEach(bar());
@@ -119,6 +218,13 @@ module.exports = function transformer(file, api, opts) {
 					null
 				)
 			]
+		}
+		// [1,2].forEach((num, index) => console.log(num, index)});
+		// Reverse the order of the arguments in forEach so the match what is used in .entries()
+		else if(multiple_params) {
+			declarator = [j.variableDeclarator(
+				j.arrayPattern(args.params.reverse())
+			)];
 		}
 		// Anything else
 		else {
@@ -163,7 +269,7 @@ module.exports = function transformer(file, api, opts) {
 				name
 			}
 		}).replaceWith(path => {
-			const index = [`it`, `test`].includes(name) ? 1 : 0;
+			const index = [`it`, `xit`, `test`, `describe`, `xdescribe`].includes(name) ? 1 : 0;
 
 			if(path.value.arguments[index] && path.value.arguments[index].type === `ArrowFunctionExpression`) {
 				path.value.arguments[index].async = true
@@ -184,7 +290,7 @@ module.exports = function transformer(file, api, opts) {
 		}).replaceWith(path => {
 			// Don't do
 			// [...Array(num_users)].map(() => ({ ...options }));
-			if(![`ObjectExpression`].includes(path.value.arguments[0].body.type)) {
+			if(path.value.arguments[0].body && ![`ObjectExpression`].includes(path.value.arguments[0].body.type)) {
 				path.value.arguments[0].async = true;
 			}
 
@@ -211,7 +317,7 @@ module.exports = function transformer(file, api, opts) {
 	// Add await to all calls to class methods
 	// This will handle chained methods
 	// E.g. LoginPage.login()
-	// @todo This could be too generic. It will pick up methods that don't need await on them
+	// @todo This could be too generic. It can pick up methods that don't need await on them
 	root.find(j.CallExpression, {
 		callee : {
 			type : `MemberExpression`,
@@ -224,13 +330,27 @@ module.exports = function transformer(file, api, opts) {
 			return path.value;
 		}
 
+		// Need to make sure to include expect here
+		const checks = [...JS_BUILT_IN, ...EXCLUDE_OBJECTS].filter(word => ![`expect`, `expectChai`].includes(word));
+
 		// Exclude any built in javascipt functions
-		if(JS_BUILT_IN.includes(path.value.callee.property.name)) {
+		if(checks.includes(path.value.callee.property.name) || checks.includes(path.value.callee.object.name)) {
 			return path.value;
 		}
 
-		// Exclude custom objects
-		if(EXCLUDE_OBJECTS.includes(path.value.callee.object.name)) {
+		if(
+			path.value.callee &&
+			path.value.callee.object.callee &&
+			checks.includes(path.value.callee.object.callee.name)
+		) {
+			return path.value;
+		}
+
+		// Exclude certing things like moment
+		// Examples below:
+		// current_date = moment(current_date, `MM/DD/YYYY`).add(1, `days`).format(`MM/DD/YYYY`);
+		// dates.push(moment(current_date, `MM/DD/YYYY`).format(format_to_return));
+		if(excludeAsyncCustom(path.value.callee.object)) {
 			return path.value;
 		}
 
@@ -240,14 +360,20 @@ module.exports = function transformer(file, api, opts) {
 		}
 	});
 
-	/*
 	// foo();
 	root.find(j.CallExpression, {
 		callee : {
 			type : `Identifier`,
 		}
 	}).replaceWith(path => {
-		if(excludeAsyncWrap(path) || [`$`, `$$`].includes(path.value.callee.name) {
+		const callee_name = path.value.callee.name;
+		const checks      = [...JS_BUILT_IN, ...EXCLUDE_OBJECTS, ...HOOKS, ...[`$`, `$$`]];
+
+		if(
+			excludeAsyncWrap(path) ||
+			insideExecute(path.parentPath) ||
+			checks.includes(callee_name)
+		) {
 			return path.value;
 		}
 
@@ -256,7 +382,6 @@ module.exports = function transformer(file, api, opts) {
 			argument : path.value
 		}
 	});
-	*/
 
 	// Set all method definitions to async. excludes "get", "set"
 	root.find(j.MethodDefinition, {
@@ -278,10 +403,26 @@ module.exports = function transformer(file, api, opts) {
 	});
 
 	// Set all function definitions to async
-	root.find(j.FunctionDeclaration).replaceWith(path => {
-		path.value.async = true;
+	[`FunctionDeclaration`, `ArrowFunctionExpression`].forEach(name => {
+		root.find(j[name]).replaceWith(path => {
+			// Don't convert object literals
+			// e.g. const foo = () => ({ bar : 123 });
+			if(path.value.body.type === `ObjectExpression`) {
+				return path.value;
+			}
 
-		return path.value;
+			// For ArrowFunctionExpression don't do things like:
+			// describe()
+			// But do:
+			// const foo = () => {}
+			if(path.parent.value.type === `CallExpression`) {
+				return path.value;
+			}
+
+			path.value.async = true;
+
+			return path.value;
+		});
 	});
 
 	compilers.update(j, root, auto_compile_opts, opts);

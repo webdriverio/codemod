@@ -1,18 +1,30 @@
 exports.HOOKS = [
 	`it`,
+	`xit`,
 	`before`,
+	`beforeEach`,
+	`after`,
+	`afterEach`,
 	`suite`,
 	`test`,
+	`describe`,
+	`xdescribe`,
 ];
 
 exports.EXTRA_COMMANDS = [
 	`waitUntil`,
 	`map`,
+	`filter`,
+	`some`,
+	`find`,
+	`reduce`,
+	`fill`,
+	`every`,
+	`flatMap`,
 ];
 
 // Exclude any custom objects
 exports.EXCLUDE_OBJECTS = [
-	`document`,
 	`Helpers`,
 	`Helper`,
 	`moment`,
@@ -21,6 +33,11 @@ exports.EXCLUDE_OBJECTS = [
 	`Array`,
 	`Number`,
 	`String`,
+	`require`,
+	`describe`,
+	`xdescribe`,
+	`expect`,
+	`expectChai`,
 ];
 
 exports.JS_BUILT_IN = [
@@ -159,4 +176,4 @@ exports.JS_BUILT_IN = [
 	`test`,
 	`toSource`,
 	`toString`,
-]
+];

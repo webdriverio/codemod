@@ -1,6 +1,6 @@
 const Login = require('./page');
 
-describe('Test describe', () => {
+describe('Test describe', async () => {
     before(async () => {
         await Authenticate.login();
     });
@@ -14,10 +14,16 @@ describe('Test describe', () => {
             return (await $('.bar').getText()) === 'foo';
         });
 
-        foo();
+        await foo();
 
-        current_date = await (await moment(current_date, `MM/DD/YYYY`).add(1, `days`)).format(`MM/DD/YYYY`);
-        dates.push(await moment(current_date, `MM/DD/YYYY`).format(format_to_return));
+        current_date = moment(current_date, `MM/DD/YYYY`).add(1, `days`).format(`MM/DD/YYYY`);
+        dates.push(moment(current_date, `MM/DD/YYYY`).format(format_to_return));
+
+        foobar.map(String);
+
+        await expect(1).toBe(1);
+
+        const foobar = async () => {}
     });
 
     it(`browser.execute`, async () => {
@@ -47,6 +53,29 @@ describe('Test describe', () => {
         }, date, time);
 
         await browser.execute(this.setHash(options.hash));
+
+        const foo = await browser.execute(() => {
+            $(`.foo`).click();
+        });
+
+        async function bar() {
+            return browser.execute(() => {
+                $(`.foo`).click();
+            });
+        }
+
+        const results = await browser.execute(() => {
+            const bar = 123;
+
+            (function foo() {
+                const testing = 456;
+                foo();
+            })()
+        });
+
+        testing = await browser.execute(() => {
+            $(`.foo`).click();
+        });
     });
 
     it('loops', async () => {
@@ -76,16 +105,36 @@ describe('Test describe', () => {
             await $('.bar').setValue(bar);
         };
 
-        for (const num of foo.bar) {
-            await $('.bar').click();
-        };
-
         for (const num of foo) {
             await $('.bar').setValue('aaa');
         };
 
         for (const foo of button_data) {
-            checkAuthPage(true);
+            await checkAuthPage(true);
+        };
+
+        for (const [index, word] of [`foo`].entries()) {
+            console.log(word, index);
+        };
+
+        for (const word of foo) {
+            console.log(word);
+        };
+
+        for (const [index, word] of foo.entries()) {
+            console.log(word, index);
+        };
+
+        for (const [index, word] of foo.bar.entries()) {
+            console.log(word, index);
+        };
+
+        for (const word of foo.bar) {
+            console.log(word);
+        };
+
+        for (const num of [`foo`]) {
+            console.log(word);
         };
     });
 });
@@ -94,3 +143,11 @@ async function foo() {
     const bar = 123;
     await $('.foo').setValue(bar);
 }
+
+const getColumns = async (foo, bar) => {
+	await $(`.123`).setValue(123);
+}
+
+const foobar = () => ({
+    foo : 123
+});
