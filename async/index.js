@@ -4,6 +4,8 @@ const {
 	HOOKS,
 	JS_BUILT_IN,
 	EXCLUDE_OBJECTS,
+	EXCLUDE_METHODS,
+	AWAIT_CUSTOM_GETTERS,
  } = require(`./constants`);
 
 // Exclude await if already await'ed, a return line or for of loop
@@ -279,6 +281,39 @@ module.exports = function transformer(file, api, opts) {
 		});
 	});
 
+	// Wrap all .map in Promise.all
+	root.find(j.CallExpression, {
+		callee : {
+			property : {
+				name : `map`
+			}
+		}
+	}).replaceWith(path => {
+		// If map has already been wrapped in a Promise then don't do anything
+		if(
+			path.parent.value.callee &&
+			path.parent.value.callee.object &&
+			path.parent.value.callee.object.name === `Promise`
+		) {
+			return path.value;
+		}
+
+		const expression = j.callExpression(
+			j.memberExpression(
+				j.identifier(`Promise`),
+				j.identifier(`all`)
+			),
+			[
+				j.callExpression(
+					path.value.callee,
+					path.value.arguments
+				)
+			]
+		);
+
+		return expression;
+	});
+
 	// Transform waitUnitl, map, etc.
 	EXTRA_COMMANDS.forEach(name => {
 		root.find(j.CallExpression, {
@@ -289,7 +324,7 @@ module.exports = function transformer(file, api, opts) {
 			}
 		}).replaceWith(path => {
 			// Don't do
-			// [...Array(num_users)].map(() => ({ ...options }));
+			// [...Array(num_users)].some(() => ({ ...options }));
 			if(path.value.arguments[0].body && ![`ObjectExpression`].includes(path.value.arguments[0].body.type)) {
 				path.value.arguments[0].async = true;
 			}
@@ -331,7 +366,7 @@ module.exports = function transformer(file, api, opts) {
 		}
 
 		// Need to make sure to include expect here
-		const checks = [...JS_BUILT_IN, ...EXCLUDE_OBJECTS].filter(word => ![`expect`, `expectChai`].includes(word));
+		const checks = [...JS_BUILT_IN, ...EXCLUDE_OBJECTS, ...EXCLUDE_METHODS].filter(word => ![`expect`, `expectChai`].includes(word));
 
 		// Exclude any built in javascipt functions
 		if(checks.includes(path.value.callee.property.name) || checks.includes(path.value.callee.object.name)) {
@@ -383,10 +418,59 @@ module.exports = function transformer(file, api, opts) {
 		}
 	});
 
+	AWAIT_CUSTOM_GETTERS.forEach(name => {
+		root.find(j.MemberExpression, {
+			property : {
+				name
+			}
+		}).replaceWith(path => {
+			if(!path.value.object.name || excludeAsyncWrap(path)) {
+				return path.value;
+			}
+
+			const object_start = path.value.object.name.charAt(0);
+
+			// Check that the object starts with an uppercase character
+			// If it's not uppercase it's likely not what we want
+			if(object_start !== object_start.toUpperCase()) {
+				return path.value;
+			}
+
+			return {
+				type     : `AwaitExpression`,
+				argument : path.value
+			}
+		});
+	});
+
+	root.find(j.MemberExpression, {
+		property : {
+			name : `selector`
+		}
+	}).replaceWith(path => {
+		if(
+			excludeAsyncWrap(path) ||
+			(
+				// Don't convert things like this.selector since it's likely not what we're looking for
+				path.value.object && path.value.object.type === `ThisExpression`)
+			) {
+			return path.value;
+		}
+
+		return {
+			type : `AwaitExpression`,
+			argument : path.value
+		}
+	});
+
 	// Set all method definitions to async. excludes "get", "set"
 	root.find(j.MethodDefinition, {
 		kind : `method`
 	}).replaceWith(path => {
+		if(EXCLUDE_METHODS.includes(path.value.key.name)) {
+			return path.value;
+		}
+
 		path.value.value.async = true;
 
 		return path.value;
@@ -397,6 +481,10 @@ module.exports = function transformer(file, api, opts) {
 	root.find(j.ClassMethod, {
 		kind : `method`
 	}).replaceWith(path => {
+		if(EXCLUDE_METHODS.includes(path.value.key.name)) {
+			return path.value;
+		}
+
 		path.value.async = true;
 
 		return path.value;

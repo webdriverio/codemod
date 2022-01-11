@@ -2,10 +2,12 @@ const Login = require('./page');
 
 describe('Test describe', async () => {
     before(async () => {
-        await Authenticate.login();
+        await Login.authenticate();
     });
 
     it('general commands', async () => {
+        await Login.foo();
+
         await $('.foo').click();
 
         await browser.pause(5000);
@@ -19,11 +21,14 @@ describe('Test describe', async () => {
         current_date = moment(current_date, `MM/DD/YYYY`).add(1, `days`).format(`MM/DD/YYYY`);
         dates.push(moment(current_date, `MM/DD/YYYY`).format(format_to_return));
 
-        foobar.map(String);
+        await Promise.all(foobar.map(String));
 
         await expect(1).toBe(1);
 
         const foobar = async () => {}
+
+        const testing  = String(`foo`);
+        const testing2 = `foo`.toUpperCase();
     });
 
     it(`browser.execute`, async () => {
@@ -83,13 +88,13 @@ describe('Test describe', async () => {
             await $('.foo').setValue(num);
         };
 
-        [
+        await Promise.all([
             1,
             2,
             3
         ].map(async num => {
             await $('.foo').setValue(num);
-        });
+        }));
 
         for (const {
             foo,
@@ -136,6 +141,14 @@ describe('Test describe', async () => {
         for (const num of [`foo`]) {
             console.log(word);
         };
+
+        await Promise.all((await $$(`.foo`)).map(async el => {
+            await el.click();
+        }));
+
+        const bar = await Promise.all((await $$(`.foo`)).map(async el => {
+            await el.click();
+        }));
     });
 });
 

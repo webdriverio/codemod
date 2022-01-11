@@ -19,4 +19,5 @@ class Foo extends Page {
 
     get username() { return $('foo'); }
     get password() { return $('bar'); }
+    get bar() { return $$('bar'); }
 }

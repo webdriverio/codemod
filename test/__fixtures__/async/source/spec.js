@@ -2,10 +2,12 @@ const Login = require('./page');
 
 describe('Test describe', () => {
     before(() => {
-        Authenticate.login();
+        Login.authenticate();
     });
 
     it('general commands', () => {
+        Login.foo();
+
         $('.foo').click();
 
         browser.pause(5000);
@@ -24,6 +26,9 @@ describe('Test describe', () => {
         expect(1).toBe(1);
 
         const foobar = () => {}
+
+        const testing  = String(`foo`);
+        const testing2 = `foo`.toUpperCase();
     });
 
     it(`browser.execute`, () => {
@@ -131,6 +136,14 @@ describe('Test describe', () => {
 
         [`foo`].forEach(num => {
             console.log(word);
+        });
+
+        $$(`.foo`).map((el) => {
+            el.click();
+        });
+
+        const bar = $$(`.foo`).map((el) => {
+            el.click();
         });
     });
 });

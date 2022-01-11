@@ -11,6 +11,7 @@ exports.HOOKS = [
 	`xdescribe`,
 ];
 
+// Commands here will have async added to them
 exports.EXTRA_COMMANDS = [
 	`waitUntil`,
 	`map`,
@@ -23,16 +24,30 @@ exports.EXTRA_COMMANDS = [
 	`flatMap`,
 ];
 
-// Exclude any custom objects
+// Store any of your getters here that need to be await'd
+// e.g. for things like $$(`.foo)
+// Adding them here will add await in front of the call where it needs to be
+exports.AWAIT_CUSTOM_GETTERS = [];
+
+// Exclude adding async / await to any methods in your local code
+// Add to this based on the needs of your app
+// Add only the method name here
+// Don't need to add the class name at all.
+// If there are same name methods across classes the code could be modified to take that into account but not a big deal
+exports.EXCLUDE_METHODS = [];
+
+// Exclude any custom objects to not await on
 exports.EXCLUDE_OBJECTS = [
-	`Helpers`,
-	`Helper`,
 	`moment`,
 	`queryString`,
 	`query_string`,
 	`Array`,
 	`Number`,
 	`String`,
+	`Object`,
+	`path`,
+	`util`,
+	`fs`,
 	`require`,
 	`describe`,
 	`xdescribe`,
@@ -40,8 +55,11 @@ exports.EXCLUDE_OBJECTS = [
 	`expectChai`,
 ];
 
+// Don't await on built in js functions/methods
 exports.JS_BUILT_IN = [
+	`Error`,
 	`includes`,
+	`trim`,
 	`constructor`,
 	`toExponential`,
 	`toFixed`,
@@ -176,4 +194,7 @@ exports.JS_BUILT_IN = [
 	`test`,
 	`toSource`,
 	`toString`,
+	`parseInt`,
+	`parseFloat`,
+	`isNaN`,
 ];

@@ -14,9 +14,10 @@ class Foo extends Page {
     }
 
     static async generateUsers(num_users, options = {}) {
-        return [...Array(num_users)].map(() => ({ ...options }));
+        return Promise.all([...Array(num_users)].map(() => ({ ...options })));
     }
 
     get username() { return $('foo'); }
     get password() { return $('bar'); }
+    get bar() { return $$('bar'); }
 }
