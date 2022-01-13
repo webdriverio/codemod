@@ -15,13 +15,6 @@ exports.HOOKS = [
 exports.EXTRA_COMMANDS = [
 	`waitUntil`,
 	`map`,
-	`filter`,
-	`some`,
-	`find`,
-	`reduce`,
-	`fill`,
-	`every`,
-	`flatMap`,
 ];
 
 // Store any of your getters here that need to be await'd
