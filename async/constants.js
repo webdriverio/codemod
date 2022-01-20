@@ -7,8 +7,6 @@ exports.HOOKS = [
 	`afterEach`,
 	`suite`,
 	`test`,
-	`describe`,
-	`xdescribe`,
 ];
 
 // Commands here will have async added to them

@@ -1,6 +1,6 @@
 const Login = require('./page');
 
-describe('Test describe', async () => {
+describe('Test describe', () => {
     before(async () => {
         await Login.authenticate();
     });
