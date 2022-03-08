@@ -24,14 +24,14 @@
     "release:major": "npm run release -- major"
   },
   "dependencies": {
-    "camelcase": "^6.2.0",
-    "jscodeshift": "^0.11.0",
+    "camelcase": "^6.3.0",
+    "jscodeshift": "^0.13.1",
     "lodash.flattendeep": "^4.4.0",
     "param-case": "^3.0.4"
   },
   "devDependencies": {
-    "expect": "^26.6.2",
-    "release-it": "^14.5.1",
-    "shelljs": "^0.8.4"
+    "expect": "^27.5.1",
+    "release-it": "^14.12.5",
+    "shelljs": "^0.8.5"
   }
 }
