@@ -114,5 +114,5 @@ module.exports = function transformer(file, api, opts) {
         }))
     ))
 
-    return root.toSource()
+    return root.toSource(opts.printOptions)
 }

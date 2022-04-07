@@ -41,6 +41,12 @@ If you use TypeScript make sure you apply a different parser as parameter, e.g.:
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor --parser=tsx ./e2e/*.ts
 ```
 
+If you use a different line terminator from your os, you can override it as parameter, e.g.:
+
+```sh
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/async --printOptions='{\"lineTerminator\":\"\n\"}' ./e2e/
+```
+
 You can transform tests as well as config files, e.g.:
 
 ![Codemod Usage Example][example]

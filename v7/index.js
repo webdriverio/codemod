@@ -29,5 +29,5 @@ module.exports = function transformer(file, api, opts) {
     ))
 
     compilers.update(j, root, autoCompileOpts, opts)
-    return root.toSource()
+    return root.toSource(opts.printOptions)
 }
