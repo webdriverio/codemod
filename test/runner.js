@@ -38,7 +38,8 @@ const frameworkTests = {
     ],
     async: [
         ['./spec.js', './spec.js'],
-        ['./page.js', './page.js']
+        ['./page.js', './page.js'],
+        ['./steps.js', './steps.js']
     ]
 }
 
@@ -58,7 +59,10 @@ async function runTest (framework, tests, parser = 'babel') {
             [srcFile],
             {
                 verbose: 2,
-                parser
+                parser,
+                printOptions : {
+                    lineTerminator:"\n"
+                }
             }
         )
 
