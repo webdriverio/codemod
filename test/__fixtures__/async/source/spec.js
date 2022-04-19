@@ -162,21 +162,13 @@ const foobar = () => ({
 });
 
 async function requestAsync() {
-    return new Promise(resolve => {
-      request(
-        {
-          url: 'https://api.github.com',
-          method: 'POST',
-          headers: {
-            accept: 'application/json',
-          },
-        },
-        (res) => {
-          if (res) {
-            resolve(true);
-        }
-        resolve(false);
-        }
-      );
-    });
+  return new Promise(resolve => {
+    request({
+      url: 'https://api.github.com',
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+      },
+    }, (res) => resolve(res ? true : false));
+  });
 }
