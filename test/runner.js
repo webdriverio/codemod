@@ -61,7 +61,7 @@ async function runTest (framework, tests, parser = 'babel') {
                 verbose: 2,
                 parser,
                 printOptions : {
-                    lineTerminator:"\n"
+                    lineTerminator: '\n'
                 }
             }
         )
