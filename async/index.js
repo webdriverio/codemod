@@ -271,12 +271,10 @@ module.exports = function transformer(file, api, opts) {
 				name
 			}
 		}).replaceWith(path => {
-			const index = [`it`, `xit`, `test`, `describe`, `xdescribe`].includes(name) ? 1 : 0;
-
+			const index = [`it`, `xit`, `test`, `describe`, `xdescribe`, `When`, `Given`, `Then`, `Before`, `BeforeStep`].includes(name) ? 1 : 0;
 			if(path.value.arguments[index] && path.value.arguments[index].type === `ArrowFunctionExpression`) {
 				path.value.arguments[index].async = true
 			}
-
 			return path.value;
 		});
 	});
@@ -470,9 +468,7 @@ module.exports = function transformer(file, api, opts) {
 		if(EXCLUDE_METHODS.includes(path.value.key.name)) {
 			return path.value;
 		}
-
 		path.value.value.async = true;
-
 		return path.value;
 	});
 
@@ -484,13 +480,12 @@ module.exports = function transformer(file, api, opts) {
 		if(EXCLUDE_METHODS.includes(path.value.key.name)) {
 			return path.value;
 		}
-
 		path.value.async = true;
 
 		return path.value;
 	});
 
-	// Set all function definitions to async
+	// Set all function definitions to async if await is present
 	[`FunctionDeclaration`, `ArrowFunctionExpression`].forEach(name => {
 		root.find(j[name]).replaceWith(path => {
 			// Don't convert object literals
@@ -507,6 +502,15 @@ module.exports = function transformer(file, api, opts) {
 				return path.value;
 			}
 
+			// If function has already been wrapped in a Promise then don't do anything
+			if(
+				path.parent.value.callee &&
+				path.parent.value.callee.name === `Promise`
+			) {
+				return path.value;
+			}
+
+			
 			path.value.async = true;
 
 			return path.value;
