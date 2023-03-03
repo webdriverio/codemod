@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const shell = require('shelljs')
-const expect = require('expect')
+const expect = require('expect').default
 
 const Runner = require('jscodeshift/src/Runner')
 
