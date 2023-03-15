@@ -7,6 +7,7 @@ This project contains various codemods to help migrating from either one major W
 - [x] v6 ▶️&nbsp; v7 (see [migration guide](https://webdriver.io/docs/v7-migration))
 - [x] Protractor ▶️&nbsp; WebdriverIO (see [migration guide](https://webdriver.io/docs/protractor-migration))
 - [x] Sync ▶️&nbsp; Async (see [migration guide](https://webdriver.io/docs/async-migration))
+  - Note: This codemod depends on the [proxying of chained async calls](https://webdriver.io/blog/2021/07/28/sync-api-deprecation/) added in v7.9
 - [ ] _more will eventually follow, let us know which ones you would like to see_
 
 If you run into any issues during your migration please [let us know](https://github.com/webdriverio/codemod/discussions/new).
