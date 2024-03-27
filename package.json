@@ -24,7 +24,7 @@
     "release:major": "npm run release -- major"
   },
   "dependencies": {
-    "camelcase": "^6.3.0",
+    "camelcase": "^8.0.0",
     "jscodeshift": "^0.15.2",
     "lodash.flattendeep": "^4.4.0",
     "param-case": "^3.0.4"
