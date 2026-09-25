@@ -32,6 +32,9 @@ const frameworkTests = {
         ['./spec.js', './spec.js'],
         ['./compilerFunctions.js', './compilerFunctions.js']
     ],
+    v10: [
+        ['./spec.js', './spec.js']
+    ],
     v6: [
         ['./spec.js', './spec.js'],
         ['./conf.js', './conf.js']

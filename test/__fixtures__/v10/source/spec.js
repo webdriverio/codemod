@@ -1,0 +1,16 @@
+browser.addCommand('myFn', fn, true)
+browser.addCommand('other', fn, false)
+browser.addCommand('already', fn, { attachToElement: true })
+browser.overwriteCommand('click', fn, true)
+browser.addCommand('withProto', fn, true, proto, instances)
+
+await $('h1').getHTML(false)
+await $('h1').getHTML(true)
+await $('h1').getHTML({ includeSelectorTag: false })
+
+await browser.getCookies('session')
+await browser.getCookie('auth')
+await browser.getCookies(['session'])
+await browser.getCookies(['session', 'auth'])
+await browser.getCookies({ name: 'kept' })
+await browser.getCookies()

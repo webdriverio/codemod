@@ -5,6 +5,7 @@ This project contains various codemods to help migrating from either one major W
 
 - [x] v5 ▶️&nbsp; v6 (see [migration guide](https://webdriver.io/docs/v6-migration))
 - [x] v6 ▶️&nbsp; v7 (see [migration guide](https://webdriver.io/docs/v7-migration))
+- [x] v9 ▶️&nbsp; v10 legacy command signatures (see [migration guide](https://webdriver.io/docs/v10-migration#legacy-command-signatures))
 - [x] Protractor ▶️&nbsp; WebdriverIO (see [migration guide](https://webdriver.io/docs/protractor-migration))
 - [x] Sync ▶️&nbsp; Async (see [migration guide](https://webdriver.io/docs/async-migration))
   - Note: This codemod depends on the [proxying of chained async calls](https://webdriver.io/blog/2021/07/28/sync-api-deprecation/) added in v7.9
@@ -30,6 +31,8 @@ $ npx jscodeshift -t ./node_modules/@wdio/codemod/<framework> <path>
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/
 # e.g. to migrate from v6 to v7:
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./e2e/
+# e.g. to update v9 command signatures for v10:
+$ npx jscodeshift -t ./node_modules/@wdio/codemod/v10 ./e2e/
 # e.g. to transform Protractor code:
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./e2e/
 # e.g. to tranform from sync to async
