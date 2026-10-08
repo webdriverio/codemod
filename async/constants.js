@@ -50,6 +50,7 @@ exports.EXCLUDE_OBJECTS = [
 	`xdescribe`,
 	`expect`,
 	`expectChai`,
+	`assert`,
 ];
 
 // Don't await on built in js functions/methods
@@ -59,6 +60,17 @@ exports.JS_BUILT_IN = [
 	`trim`,
 	`trimStart`,
 	`trimEnd`,
+	`trimLeft`,
+	`trimRight`,
+	`startsWith`,
+	`endsWith`,
+	`padStart`,
+	`padEnd`,
+	`repeat`,
+	`normalize`,
+	`codePointAt`,
+	`matchAll`,
+	`replaceAll`,
 	`constructor`,
 	`toExponential`,
 	`toFixed`,

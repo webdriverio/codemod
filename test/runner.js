@@ -39,7 +39,8 @@ const frameworkTests = {
     async: [
         ['./spec.js', './spec.js'],
         ['./page.js', './page.js'],
-        ['./steps.js', './steps.js']
+        ['./steps.js', './steps.js'],
+        ['./assert.js', './assert.js']
     ]
 }
 
