@@ -66,6 +66,7 @@ $("#foo").clearValue()
 expect(foo.elementId).not.toBe(undefined);
 
 browser.keys("ArrowDown");
+browser.keys("Up");
 
 browser.waitUntil(async () => {
     return await this.pageLoaded();

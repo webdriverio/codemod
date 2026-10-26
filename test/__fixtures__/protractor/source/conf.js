@@ -44,8 +44,9 @@ exports.config = {
     browserstackProxy: 'http://proxy.example.com:1234',
     suites: {
         smoke: 'spec/smoketests/*.js',
-        full: 'spec/*.js'
+        full: ['spec/*.js']
     },
+    suites: customSuites,
     maxSessions: 321,
     beforeLaunch: () => console.log('beforeLaunch hook'),
     onPrepare: () => {

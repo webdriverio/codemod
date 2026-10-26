@@ -53,9 +53,10 @@ exports.config = {
 
     suites: {
         smoke: ["spec/smoketests/*.js"],
-        full: ["spec/*.js"]
+        full: ['spec/*.js']
     },
 
+    suites: customSuites,
     maxInstances: 321,
     onPrepare: () => console.log('beforeLaunch hook'),
 

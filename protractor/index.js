@@ -270,7 +270,19 @@ module.exports = function transformer(file, api, opts) {
         } } }
     }).replaceWith((path) => {
         const param = path.value.callee.object.arguments[0]
-        if (!param.object.object || param.object.object.name !== 'protractor' || param.object.property.name !== 'Key') {
+        const isProtractorKey = Boolean(
+            param &&
+            param.object &&
+            (
+                param.object.name === 'Key' ||
+                (
+                    param.object.object &&
+                    param.object.object.name === 'protractor' &&
+                    param.object.property.name === 'Key'
+                )
+            )
+        )
+        if (!isProtractorKey) {
             throw new TransformError('' +
                 'Expected "proctractor.Key.XXX" as argument to the sendKeys command. ' +
                 'Please raise an issue in the codemod repository: https://github.com/webdriverio/codemod/issues/new',

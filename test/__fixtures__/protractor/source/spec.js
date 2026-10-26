@@ -72,6 +72,7 @@ element(by.id('foo')).clear()
 expect(foo.getId()).not.toBe(undefined);
 
 browser.actions().sendKeys(protractor.Key.ARROW_DOWN).perform();
+browser.actions().sendKeys(Key.UP).perform();
 
 browser.wait(async () => {
     return await this.pageLoaded();

@@ -288,12 +288,17 @@ function parseConfigProperties (property) {
             this.literal('jasmine')
         )
     } else if (name === 'suites') {
+        if (!property.value.properties) {
+            return property
+        }
         return this.objectProperty(
             this.identifier('suites'),
             this.objectExpression(property.value.properties.map((prop) => (
                 this.objectProperty(
-                    this.identifier(prop.key.name),
-                    this.arrayExpression([this.literal(prop.value.value)])
+                    this.identifier(prop.key.name || prop.key.value),
+                    prop.value.type === 'ArrayExpression'
+                        ? prop.value
+                        : this.arrayExpression([this.literal(prop.value.value)])
                 )
             )))
         )
