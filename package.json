@@ -15,6 +15,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "bin": {
+    "wdio-codemod": "./bin/codemod.js",
+    "codemod": "./bin/codemod.js"
+  },
   "scripts": {
     "test": "node ./test/runner.js",
     "release": "release-it --github.release",

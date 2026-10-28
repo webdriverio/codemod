@@ -22,7 +22,23 @@ $ npm install jscodeshift @wdio/codemod
 
 ## Usage
 
-To transform you code, run:
+To transform your code, run the `@wdio/codemod` CLI with one or more transforms and target paths:
+
+```sh
+$ npx @wdio/codemod <transforms...> [paths...]
+# e.g. to migrate from v5 to v6
+$ npx @wdio/codemod v6 ./e2e/
+# e.g. to migrate from v5 through v7 in sequence:
+$ npx @wdio/codemod v6 v7 ./e2e/
+# e.g. to transform Protractor code:
+$ npx @wdio/codemod protractor ./e2e/
+# e.g. to transform from sync to async:
+$ npx @wdio/codemod async ./e2e/
+```
+
+The CLI automatically detects TypeScript files (`.ts`, `.tsx`, `.mts`, `.cts`) and selects the `tsx` parser.
+
+You can also invoke `jscodeshift` directly:
 
 ```sh
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/<framework> <path>
