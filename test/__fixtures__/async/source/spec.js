@@ -25,6 +25,9 @@ describe('Test describe', () => {
 
         expect(1).toBe(1);
 
+        const inputClassic = $(selectors.inputClassic);
+        expect($(selectors.elementP1).getText()).toEqual('2.140%');
+
         const foobar = () => {}
 
         const testing  = String(`foo`);

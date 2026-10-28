@@ -25,6 +25,9 @@ describe('Test describe', () => {
 
         await expect(1).toBe(1);
 
+        const inputClassic = await $(selectors.inputClassic);
+        await expect($(selectors.elementP1)).toHaveText('2.140%');
+
         const foobar = async () => {}
 
         const testing  = String(`foo`);

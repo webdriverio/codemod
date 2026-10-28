@@ -331,6 +331,38 @@ module.exports = function transformer(file, api, opts) {
 		});
 	});
 
+	// Transform expect($(el).getText()).toEqual(...) / .toBe(...) into expect($(el)).toHaveText(...)
+	root.find(j.CallExpression, {
+		callee : {
+			type : `MemberExpression`,
+			object : {
+				type : `CallExpression`,
+				callee : {
+					name : `expect`,
+				},
+				arguments : [{
+					type : `CallExpression`,
+					callee : {
+						type : `MemberExpression`,
+						property : {
+							name : `getText`,
+						}
+					}
+				}]
+			},
+			property : {
+				type : `Identifier`,
+			}
+		}
+	}).replaceWith(path => {
+		if([`toEqual`, `toBe`].includes(path.value.callee.property.name)) {
+			path.value.callee.object.arguments[0] = path.value.callee.object.arguments[0].callee.object;
+			path.value.callee.property.name = `toHaveText`;
+		}
+
+		return path.value;
+	});
+
 	// Handle $$
 	root.find(j.CallExpression, {
 		callee : {
@@ -384,6 +416,31 @@ module.exports = function transformer(file, api, opts) {
 		// current_date = moment(current_date, `MM/DD/YYYY`).add(1, `days`).format(`MM/DD/YYYY`);
 		// dates.push(moment(current_date, `MM/DD/YYYY`).format(format_to_return));
 		if(excludeAsyncCustom(path.value.callee.object)) {
+			return path.value;
+		}
+
+		return {
+			type     : `AwaitExpression`,
+			argument : path.value
+		}
+	});
+
+	// Handle standalone $
+	root.find(j.CallExpression, {
+		callee : {
+			name : `$`,
+		}
+	}).replaceWith(path => {
+		if(
+			excludeAsyncWrap(path) ||
+			insideExecute(path.parentPath) ||
+			path.parent.value.type === `MemberExpression` ||
+			(
+				path.parent.value.type === `CallExpression` &&
+				path.parent.value.callee &&
+				[`expect`, `expectChai`].includes(path.parent.value.callee.name)
+			)
+		) {
 			return path.value;
 		}
 
